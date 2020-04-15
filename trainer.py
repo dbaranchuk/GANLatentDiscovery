@@ -227,7 +227,8 @@ class Trainer(object):
                                                          scale=std_img_shifted_feats)
 
             kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr)
-            inception_loss = self.p.inception_loss_weight * kl
+            print(kl.shape)
+            inception_loss = self.p.inception_loss_weight * kl.mean()
             ##########################
 
             logits, shift_prediction = shift_predictor(imgs, imgs_shifted)
