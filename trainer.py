@@ -45,7 +45,7 @@ class Params(object):
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.inception_loss_weight = 1.0
+        self.inception_loss_weight = 10.0
 
         self.steps_per_log = 10
         self.steps_per_save = 10000
@@ -227,7 +227,6 @@ class Trainer(object):
                                                          scale=std_img_shifted_feats)
 
             kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr)
-            print(kl.shape)
             inception_loss = self.p.inception_loss_weight * kl.mean()
             ##########################
 
