@@ -204,12 +204,14 @@ class Trainer(object):
                 z = deformator(z)
             else:
                 z_shifted = z + deformator(z_shift)
+
+            print(len(z), type(z))
             imgs = G(z)
             imgs_shifted = G(z_shifted)
 
             ##########################
             rescale = lambda x: 2. * x - 1.
-            print(len(imgs), imgs[0].shape)
+            print(len(imgs), len(imgs[0]))
             img_feats = inception(rescale(imgs))
             img_shifted_feats = inception(rescale(imgs_shifted))
 
