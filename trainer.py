@@ -209,7 +209,7 @@ class Trainer(object):
 
             ##########################
             rescale = lambda x: 2. * x - 1.
-            print(inception, imgs.shape)
+            print(len(imgs))
             img_feats = inception(rescale(imgs))
             img_shifted_feats = inception(rescale(imgs_shifted))
 
