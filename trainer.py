@@ -211,7 +211,19 @@ class Trainer(object):
             rescale = lambda x: 2. * x - 1.
             img_feats = inception(rescale(imgs))
             img_shifted_feats = inception(rescale(imgs_shifted))
-            inception_loss = self.p.inception_loss_weight * ((img_feats - img_shifted_feats) ** 2).sum(-1).mean()
+
+            print(img_feats.shape)
+            mean_img_feats = img_feats.mean(0)
+            std_img_feats = img_feats.std(0)
+            img_feats_distr = torch.distributions.Normal(loc=mean_img_feats, scale=std_img_feats)
+
+            mean_img_shifted_feats = img_shifted_feats.mean(0)
+            std_img_shifted_feats = img_shifted_feats.std(0)
+            img_shifted_feats_distr = torch.distributions.Normal(loc=mean_img_shifted_feats,
+                                                         scale=std_img_shifted_feats)
+
+            kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr)
+            inception_loss = self.p.inception_loss_weight * kl
             ##########################
 
             logits, shift_prediction = shift_predictor(imgs, imgs_shifted)
