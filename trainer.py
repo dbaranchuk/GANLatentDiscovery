@@ -45,6 +45,8 @@ class Params(object):
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
+        self.inception_loss_weight = 1.0
+
         self.steps_per_log = 10
         self.steps_per_save = 10000
         self.steps_per_img_log = 1000
@@ -171,7 +173,7 @@ class Trainer(object):
         if step % self.p.steps_per_save == 0 and step > 0:
             self.save_models(deformator, shift_predictor, step)
 
-    def train(self, G, deformator, shift_predictor):
+    def train(self, G, deformator, shift_predictor, inception):
         G.cuda().eval()
         deformator.cuda().train()
         shift_predictor.cuda().train()
@@ -182,8 +184,8 @@ class Trainer(object):
             shift_predictor.parameters(), lr=self.p.shift_predictor_lr)
 
         avgs = MeanTracker('percent'), MeanTracker('loss'), MeanTracker('direction_loss'),\
-               MeanTracker('shift_loss'), MeanTracker('deformator_loss')
-        avg_correct_percent, avg_loss, avg_label_loss, avg_shift_loss, avg_deformator_loss = avgs
+               MeanTracker('shift_loss'), MeanTracker('deformator_loss'), MeanTracker('inception_loss')
+        avg_correct_percent, avg_loss, avg_label_loss, avg_shift_loss, avg_deformator_loss, avg_inception_loss = avgs
 
         recovered_step = self.start_from_checkpoint(deformator, shift_predictor)
         for step in range(recovered_step, self.p.n_steps, 1):
@@ -204,6 +206,13 @@ class Trainer(object):
                 z_shifted = z + deformator(z_shift)
             imgs = G(z)
             imgs_shifted = G(z_shifted)
+
+            ##########################
+            rescale = lambda x: 2. * x - 1.
+            img_feats = inception(rescale(imgs))
+            img_shifted_feats = inception(rescale(imgs_shifted))
+            inception_loss = self.p.inception_loss_weight * ((img_feats - img_shifted_feats) ** 2).sum(-1).mean()
+            ##########################
 
             logits, shift_prediction = shift_predictor(imgs, imgs_shifted)
             logit_loss = self.p.label_weight * self.cross_entropy(logits, target_indices)
@@ -230,7 +239,7 @@ class Trainer(object):
                 z_loss = torch.tensor([0.0], device='cuda')
 
             # total loss
-            loss = logit_loss + shift_loss + z_loss
+            loss = logit_loss + shift_loss + z_loss + inception_loss
             loss.backward()
 
             if deformator_opt is not None:
@@ -244,6 +253,7 @@ class Trainer(object):
             avg_label_loss.add(logit_loss.item())
             avg_shift_loss.add(shift_loss)
             avg_deformator_loss.add(z_loss.item())
+            avg_inception_loss.add(inception_loss.item())
 
             self.log(G, deformator, shift_predictor, step, avgs)
 

@@ -13,7 +13,7 @@ from models.gan_load import make_big_gan, make_proggan, make_external
 from latent_deformator import LatentDeformator
 from latent_shift_predictor import ResNetShiftPredictor, LeNetShiftPredictor
 from trainer import Trainer, Params
-
+from inception import InceptionV3
 
 def main():
     parser = argparse.ArgumentParser(description='Latent space rectification')
@@ -82,11 +82,12 @@ def main():
         shift_predictor = LeNetShiftPredictor(
             G.dim_z, 1 if args.gan_type == 'SN_MNIST' else 3).cuda()
 
+    inception = InceptionV3(resize_input=True, requires_grad=False, use_fid_inception=True).cuda()
     # training
     args.shift_distribution = SHIFT_DISTRIDUTION_DICT[args.shift_distribution_key]
     args.deformation_loss = DEFORMATOR_LOSS_DICT[args.deformation_loss]
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out, out_json=args.json)
-    trainer.train(G, deformator, shift_predictor)
+    trainer.train(G, deformator, shift_predictor, inception)
 
 
 if __name__ == '__main__':
