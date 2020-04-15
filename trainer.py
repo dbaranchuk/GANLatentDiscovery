@@ -209,10 +209,13 @@ class Trainer(object):
             imgs_shifted = G(z_shifted)
 
             ##########################
-            print(imgs.shape)
             img_feats = inception(imgs)
+            if isinstance(img_feats, list):
+                img_feats = img_feats[0]
+
             img_shifted_feats = inception(imgs_shifted)
-            print(img_feats.shape)
+            if isinstance(img_shifted_feats, list):
+                img_shifted_feats = img_shifted_feats[0]
 
             mean_img_feats = img_feats.mean(0)
             std_img_feats = img_feats.std(0)
