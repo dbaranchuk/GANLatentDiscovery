@@ -205,13 +205,12 @@ class Trainer(object):
             else:
                 z_shifted = z + deformator(z_shift)
 
-            print(z.shape)
-            imgs = G(z)
-            imgs_shifted = G(z_shifted)
+            imgs = torch.cat(G(z))
+            imgs_shifted = torch.cat(G(z_shifted))
 
             ##########################
             rescale = lambda x: 2. * x - 1.
-            print(len(imgs), type(imgs[0]))
+            print(imgs.shape)
             img_feats = inception(rescale(imgs))
             img_shifted_feats = inception(rescale(imgs_shifted))
 
