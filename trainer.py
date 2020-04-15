@@ -211,11 +211,10 @@ class Trainer(object):
 
             ##########################
             rescale = lambda x: 2. * x - 1.
-            print(len(imgs), len(imgs[0]))
+            print(len(imgs), type(imgs[0]))
             img_feats = inception(rescale(imgs))
             img_shifted_feats = inception(rescale(imgs_shifted))
 
-            print(img_feats.shape)
             mean_img_feats = img_feats.mean(0)
             std_img_feats = img_feats.std(0)
             img_feats_distr = torch.distributions.Normal(loc=mean_img_feats, scale=std_img_feats)
