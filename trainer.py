@@ -313,9 +313,9 @@ class Trainer(object):
         img_shifted_feats_distr = torch.distributions.Normal(loc=mean_img_shifted_feats,
                                                      scale=std_img_shifted_feats)
 
-        kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr)
-        inception_loss = self.p.inception_loss_weight * kl.mean()
-        print(f"Target id{target_id} | Inception loss {inception_loss}")
+        kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr).mean().item()
+        print(f"Target id {target_id} | KL {kl}")
+        return kl
 
 
 @torch.no_grad()

@@ -8,6 +8,7 @@ import torch
 import matplotlib
 matplotlib.use("Agg")
 
+import numpy as np
 from constants import DEFORMATOR_TYPE_DICT, DEFORMATOR_LOSS_DICT, SHIFT_DISTRIDUTION_DICT, WEIGHTS
 from models.gan_load import make_big_gan, make_proggan, make_external
 from latent_deformator import LatentDeformator
@@ -93,9 +94,11 @@ def main():
     if args.mode == 'train':
         trainer.train(G, deformator, shift_predictor, inception)
     else:
+        kls = np.zeros(120)
         trainer.start_from_checkpoint(deformator, shift_predictor)
         for target_id in range(trainer.p.max_latent_ind):
-            trainer.eval(G, deformator, shift_predictor, inception, target_id)
+            kls[target_id] = trainer.eval(G, deformator, shift_predictor, inception, target_id)
+        np.save("fixed/inspection_dim_kl.npy", kls)
 
 
 if __name__ == '__main__':
