@@ -317,7 +317,7 @@ class Trainer(object):
 
         kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr)
         inception_loss = self.p.inception_loss_weight * kl.mean()
-        print(f"Inception loss {inception_loss}")
+        print(f"Target id{target_id} | Inception loss {inception_loss}")
 
 
 @torch.no_grad()
