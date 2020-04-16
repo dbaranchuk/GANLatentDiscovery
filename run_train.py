@@ -96,7 +96,7 @@ def main():
     else:
         kls = np.zeros(120)
         trainer.start_from_checkpoint(deformator, shift_predictor)
-        for target_id in range(trainer.p.max_latent_ind+1, 0, -1):
+        for target_id in range(trainer.p.max_latent_ind-1, -1, -1):
             kls[target_id] = trainer.eval(G, deformator, shift_predictor, inception, target_id)
         np.save("fixed/inspection_dim_kl.npy", kls)
 
