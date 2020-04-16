@@ -88,6 +88,7 @@ def main():
     args.deformation_loss = DEFORMATOR_LOSS_DICT[args.deformation_loss]
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out, out_json=args.json)
 
+    trainer.start_from_checkpoint(deformator, shift_predictor)
     # trainer.train(G, deformator, shift_predictor, inception)
     for target_id in range(trainer.p.max_latent_ind):
         trainer.eval(G, deformator, shift_predictor, inception, target_id)

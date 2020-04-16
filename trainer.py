@@ -280,8 +280,6 @@ class Trainer(object):
         deformator.cuda().train()
         shift_predictor.cuda().train()
 
-        self.start_from_checkpoint(deformator, shift_predictor)
-
         z = make_noise(self.p.batch_size, G.dim_z).cuda()
         target_indices = torch.full([self.p.batch_size], target_id, device='cuda').type(torch.long)
         _, shifts, z_shift = self.make_shifts(G.dim_z, target_indices=target_indices)
