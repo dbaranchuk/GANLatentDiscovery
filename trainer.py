@@ -78,8 +78,9 @@ class Trainer(object):
         self.out_json = out_json if out_json is not None else os.path.join(out_dir, 'stat.json')
         self.fixed_test_noise = None
 
-    def make_shifts(self, latent_dim):
-        target_indices = torch.randint(0, self.p.max_latent_ind, [self.p.batch_size], device='cuda')
+    def make_shifts(self, latent_dim, target_indices=None):
+        if target_indices is None:
+            target_indices = torch.randint(0, self.p.max_latent_ind, [self.p.batch_size], device='cuda')
         if self.p.shift_distribution == ShiftDistribution.NORMAL:
             shifts =  torch.randn(target_indices.shape, device='cuda')
         elif self.p.shift_distribution == ShiftDistribution.UNIFORM:
@@ -272,6 +273,51 @@ class Trainer(object):
             avg_inception_loss.add(inception_loss.item())
 
             self.log(G, deformator, shift_predictor, step, avgs)
+
+    @torch.no_grad()
+    def eval(self, G, deformator, shift_predictor, inception, target_id):
+        G.cuda().eval()
+        deformator.cuda().train()
+        shift_predictor.cuda().train()
+
+        self.start_from_checkpoint(deformator, shift_predictor)
+
+        z = make_noise(self.p.batch_size, G.dim_z).cuda()
+        target_indices = torch.full([self.p.batch_size], target_id, device='cuda')
+        _, shifts, z_shift = self.make_shifts(G.dim_z, target_indices=target_indices)
+
+        # Deformation
+
+        if self.p.global_deformation:
+            z_shifted = deformator(z + z_shift)
+            z = deformator(z)
+        else:
+            z_shifted = z + deformator(z_shift)
+
+        imgs = G(z)
+        imgs_shifted = G(z_shifted)
+
+        ##########################
+        img_feats = inception(imgs)
+        if isinstance(img_feats, list):
+            img_feats = img_feats[0]
+
+        img_shifted_feats = inception(imgs_shifted)
+        if isinstance(img_shifted_feats, list):
+            img_shifted_feats = img_shifted_feats[0]
+
+        mean_img_feats = img_feats.mean(0)
+        std_img_feats = img_feats.std(0)
+        img_feats_distr = torch.distributions.Normal(loc=mean_img_feats, scale=std_img_feats)
+
+        mean_img_shifted_feats = img_shifted_feats.mean(0)
+        std_img_shifted_feats = img_shifted_feats.std(0)
+        img_shifted_feats_distr = torch.distributions.Normal(loc=mean_img_shifted_feats,
+                                                     scale=std_img_shifted_feats)
+
+        kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr)
+        inception_loss = self.p.inception_loss_weight * kl.mean()
+        print(f"Inception loss {inception_loss}")
 
 
 @torch.no_grad()

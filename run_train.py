@@ -87,7 +87,11 @@ def main():
     args.shift_distribution = SHIFT_DISTRIDUTION_DICT[args.shift_distribution_key]
     args.deformation_loss = DEFORMATOR_LOSS_DICT[args.deformation_loss]
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out, out_json=args.json)
-    trainer.train(G, deformator, shift_predictor, inception)
+
+    # trainer.train(G, deformator, shift_predictor, inception)
+    for target_id in range(trainer.p.max_latent_ind):
+        trainer.eval(G, deformator, shift_predictor, inception, target_id)
+
 
 
 if __name__ == '__main__':
