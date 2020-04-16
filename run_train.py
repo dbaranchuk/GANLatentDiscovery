@@ -93,6 +93,5 @@ def main():
         trainer.eval(G, deformator, shift_predictor, inception, target_id)
 
 
-
 if __name__ == '__main__':
     main()
