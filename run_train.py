@@ -95,10 +95,14 @@ def main():
         trainer.train(G, deformator, shift_predictor, inception)
     else:
         kls = np.zeros(120)
+        l2s = np.zeros(120)
         trainer.start_from_checkpoint(deformator, shift_predictor)
         for target_id in range(trainer.p.max_latent_ind):
-            kls[target_id] = trainer.eval(G, deformator, shift_predictor, inception, target_id)
+            kl, l2 = trainer.eval(G, deformator, shift_predictor, inception, target_id)
+            kls[target_id] = kl
+            l2s[target_id] = l2
         np.save(f"fixed/inspection_dim_{args.target_class}_kl.npy", kls)
+        np.save(f"fixed/inspection_dim_{args.target_class}_l2.npy", l2s)
 
 
 if __name__ == '__main__':
