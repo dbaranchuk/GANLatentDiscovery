@@ -82,7 +82,7 @@ def main():
         shift_predictor = LeNetShiftPredictor(
             G.dim_z, 1 if args.gan_type == 'SN_MNIST' else 3).cuda()
 
-    inception = InceptionV3(resize_input=True, requires_grad=False, use_fid_inception=True).cuda()
+    inception = InceptionV3(resize_input=True, requires_grad=False, use_fid_inception=True).cuda().eval()
     # training
     args.shift_distribution = SHIFT_DISTRIDUTION_DICT[args.shift_distribution_key]
     args.deformation_loss = DEFORMATOR_LOSS_DICT[args.deformation_loss]

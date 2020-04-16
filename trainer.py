@@ -277,8 +277,8 @@ class Trainer(object):
     @torch.no_grad()
     def eval(self, G, deformator, shift_predictor, inception, target_id):
         G.cuda().eval()
-        deformator.cuda().train()
-        shift_predictor.cuda().train()
+        deformator.cuda().eval()
+        shift_predictor.cuda().eval()
 
         z = make_noise(self.p.batch_size, G.dim_z).cuda()
         target_indices = torch.full([self.p.batch_size], target_id, device='cuda').type(torch.long)
