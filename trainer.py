@@ -292,21 +292,20 @@ class Trainer(object):
         else:
             z_shifted = z + deformator(z_shift)
 
-        imgs = G(z)
-        imgs_shifted = G(z_shifted)
-
         ##########################
         img_feats = []
-        for _imgs in imgs.split(64):
-            img_feats = inception(_imgs)
+        for _z in z.split(128):
+            imgs = G(_z)
+            img_feats = inception(imgs)
             if isinstance(img_feats, list):
                 img_feats = img_feats[0]
             img_feats.append(img_feats.view(self.p.batch_size, -1))
         img_feats = torch.cat(img_feats)
 
         img_shifted_feats = []
-        for _imgs_shifted in imgs_shifted.split(64):
-            img_shifted_feats = inception(_imgs_shifted)
+        for _z_shifted in z_shifted.split(128):
+            imgs_shifted = G(_z_shifted)
+            img_shifted_feats = inception(imgs_shifted)
             if isinstance(img_shifted_feats, list):
                 img_shifted_feats = img_shifted_feats[0]
             img_shifted_feats.append(img_shifted_feats.view(self.p.batch_size, -1))
