@@ -218,17 +218,19 @@ class Trainer(object):
             if isinstance(img_shifted_feats, list):
                 img_shifted_feats = img_shifted_feats[0]
 
-            mean_img_feats = img_feats.mean(0)
-            std_img_feats = img_feats.std(0)
-            img_feats_distr = torch.distributions.Normal(loc=mean_img_feats, scale=std_img_feats)
-
-            mean_img_shifted_feats = img_shifted_feats.mean(0)
-            std_img_shifted_feats = img_shifted_feats.std(0)
-            img_shifted_feats_distr = torch.distributions.Normal(loc=mean_img_shifted_feats,
-                                                         scale=std_img_shifted_feats)
-
-            kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr)
-            inception_loss = self.p.inception_loss_weight * kl.mean()
+            # mean_img_feats = img_feats.mean(0)
+            # std_img_feats = img_feats.std(0)
+            # img_feats_distr = torch.distributions.Normal(loc=mean_img_feats, scale=std_img_feats)
+            #
+            # mean_img_shifted_feats = img_shifted_feats.mean(0)
+            # std_img_shifted_feats = img_shifted_feats.std(0)
+            # img_shifted_feats_distr = torch.distributions.Normal(loc=mean_img_shifted_feats,
+            #                                              scale=std_img_shifted_feats)
+            #
+            # kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr)
+            # inception_loss = self.p.inception_loss_weight * kl.mean()
+            l2 = ((img_feats - img_shifted_feats) ** 2).mean()
+            inception_loss = self.p.inception_loss_weight * l2
             ##########################
 
             logits, shift_prediction = shift_predictor(imgs, imgs_shifted)
