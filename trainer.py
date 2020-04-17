@@ -318,7 +318,7 @@ class Trainer(object):
         kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr).mean().item()
         l2 = ((img_feats - img_shifted_feats) ** 2).sum(-1).mean().item()
 
-        print(f"Target id {target_id} | KL {kl:.3} | L2 {l2:.3}")
+        print(f"Target id {target_id} | KL {kl:.3} | L2 {l2}")
         return kl, l2
 
 
