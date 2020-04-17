@@ -296,15 +296,21 @@ class Trainer(object):
         imgs_shifted = G(z_shifted)
 
         ##########################
-        img_feats = inception(imgs)
-        if isinstance(img_feats, list):
-            img_feats = img_feats[0]
-        img_feats = img_feats.view(self.p.batch_size, -1)
+        img_feats = []
+        for _imgs in imgs.split(128):
+            img_feats = inception(_imgs)
+            if isinstance(img_feats, list):
+                img_feats = img_feats[0]
+            img_feats.append(img_feats.view(self.p.batch_size, -1))
+        img_feats = torch.cat(img_feats)
 
-        img_shifted_feats = inception(imgs_shifted)
-        if isinstance(img_shifted_feats, list):
-            img_shifted_feats = img_shifted_feats[0]
-        img_shifted_feats = img_shifted_feats.view(self.p.batch_size, -1)
+        img_shifted_feats = []
+        for _imgs_shifted in imgs_shifted.split(128):
+            img_shifted_feats = inception(_imgs_shifted)
+            if isinstance(img_shifted_feats, list):
+                img_shifted_feats = img_shifted_feats[0]
+            img_shifted_feats.append(img_shifted_feats.view(self.p.batch_size, -1))
+        img_shifted_feats = torch.cat(img_shifted_feats)
 
         mean_img_feats = img_feats.mean(0)
         std_img_feats = img_feats.std(0)
