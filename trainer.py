@@ -297,7 +297,7 @@ class Trainer(object):
 
         ##########################
         img_feats = []
-        for _imgs in imgs.split(128):
+        for _imgs in imgs.split(64):
             img_feats = inception(_imgs)
             if isinstance(img_feats, list):
                 img_feats = img_feats[0]
@@ -305,7 +305,7 @@ class Trainer(object):
         img_feats = torch.cat(img_feats)
 
         img_shifted_feats = []
-        for _imgs_shifted in imgs_shifted.split(128):
+        for _imgs_shifted in imgs_shifted.split(64):
             img_shifted_feats = inception(_imgs_shifted)
             if isinstance(img_shifted_feats, list):
                 img_shifted_feats = img_shifted_feats[0]
