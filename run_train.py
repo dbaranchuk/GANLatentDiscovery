@@ -101,8 +101,8 @@ def main():
             kl, l2 = trainer.eval(G, deformator, shift_predictor, inception, target_id)
             kls[target_id] = kl
             l2s[target_id] = l2
-        np.save(f"fixed/inspection_dim_{args.target_class}_kl.npy", kls)
-        np.save(f"fixed/inspection_dim_{args.target_class}_l2.npy", l2s)
+        np.save(f"fixed/inspection_dim_shift{trainer.p.shift_scale}_{args.target_class}_kl.npy", kls)
+        np.save(f"fixed/inspection_dim_shift{trainer.p.shift_scale}_{args.target_class}_l2.npy", l2s)
 
 
 if __name__ == '__main__':
