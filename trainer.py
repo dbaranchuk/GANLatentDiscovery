@@ -31,7 +31,7 @@ class Params(object):
         self.min_shift = 0.5
         self.shift_distribution = ShiftDistribution.UNIFORM
 
-        self.deformator_lr = 0.001
+        self.deformator_lr = 0.0001
         self.shift_predictor_lr = 0.0001
         self.n_steps = int(1e+5) + 1
         self.batch_size = 32
@@ -210,11 +210,11 @@ class Trainer(object):
             imgs_shifted = G(z_shifted)
 
             ##########################
-            img_feats = inception(imgs)
+            img_feats = inception(((imgs + 1.) / 2.).clamp(0, 1))
             if isinstance(img_feats, list):
                 img_feats = img_feats[0]
 
-            img_shifted_feats = inception(imgs_shifted)
+            img_shifted_feats = inception(((imgs_shifted + 1.) / 2.).clamp(0, 1))
             if isinstance(img_shifted_feats, list):
                 img_shifted_feats = img_shifted_feats[0]
 
