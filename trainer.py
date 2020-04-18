@@ -261,8 +261,6 @@ class Trainer(object):
             loss = logit_loss + shift_loss + z_loss + inception_loss
             loss.backward()
 
-            for param in deformator.parameters():
-                print(param.grad.norm(2).item())
             if deformator_opt is not None:
                 deformator_opt.step()
             shift_predictor_opt.step()
