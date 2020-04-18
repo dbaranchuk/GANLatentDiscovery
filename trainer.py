@@ -37,15 +37,15 @@ class Params(object):
         self.batch_size = 32
         self.max_latent_ind = 120
 
-        self.label_weight = 0.0#2.0
-        self.shift_weight = 0.0#0.5
+        self.label_weight = 2.0
+        self.shift_weight = 0.5
 
         self.deformation_loss_weight = 2.0
         self.z_norm_loss_low_bound = 1.1
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.inception_loss_weight = 10.0
+        self.inception_loss_weight = 0.0
 
         self.steps_per_log = 10
         self.steps_per_save = 10000
