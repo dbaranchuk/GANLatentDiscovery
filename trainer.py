@@ -45,7 +45,7 @@ class Params(object):
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.inception_loss_weight = 10.0
+        self.inception_loss_weight = 100.0
 
         self.steps_per_log = 10
         self.steps_per_save = 10000
@@ -230,7 +230,7 @@ class Trainer(object):
             # kl = torch.distributions.kl.kl_divergence(img_shifted_feats_distr, img_feats_distr)
             # inception_loss = self.p.inception_loss_weight * kl.mean()
             l2 = ((img_feats - img_shifted_feats) ** 2).mean()
-            inception_loss = -self.p.inception_loss_weight * l2
+            inception_loss = self.p.inception_loss_weight * l2
             ##########################
 
             logits, shift_prediction = shift_predictor(imgs, imgs_shifted)
@@ -261,8 +261,6 @@ class Trainer(object):
             loss = logit_loss + shift_loss + z_loss + inception_loss
             loss.backward()
 
-
-            print(deformator)
             for param in deformator.parameters():
                 print(param.grad.norm(2).item())
             if deformator_opt is not None:
