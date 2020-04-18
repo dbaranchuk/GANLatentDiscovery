@@ -31,7 +31,7 @@ class Params(object):
         self.min_shift = 0.5
         self.shift_distribution = ShiftDistribution.UNIFORM
 
-        self.deformator_lr = 0.0001
+        self.deformator_lr = 0.001
         self.shift_predictor_lr = 0.0001
         self.n_steps = int(1e+5) + 1
         self.batch_size = 32
