@@ -37,15 +37,15 @@ class Params(object):
         self.batch_size = 32
         self.max_latent_ind = 120
 
-        self.label_weight = 2.0
-        self.shift_weight = 0.5
+        self.label_weight = 0.0#2.0
+        self.shift_weight = 0.0#0.5
 
         self.deformation_loss_weight = 2.0
         self.z_norm_loss_low_bound = 1.1
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.inception_loss_weight = 10000000.0
+        self.inception_loss_weight = 1000000.0
 
         self.steps_per_log = 10
         self.steps_per_save = 10000
@@ -217,8 +217,6 @@ class Trainer(object):
             img_shifted_feats = inception(imgs_shifted)
             if isinstance(img_shifted_feats, list):
                 img_shifted_feats = img_shifted_feats[0]
-
-            print(imgs_shifted.requires_grad, img_shifted_feats.requires_grad)
 
             # mean_img_feats = img_feats.mean(0)
             # std_img_feats = img_feats.std(0)
