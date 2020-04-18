@@ -45,7 +45,7 @@ class Params(object):
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.inception_loss_weight = 1000.0
+        self.inception_loss_weight = 10.0
 
         self.steps_per_log = 10
         self.steps_per_save = 10000
@@ -262,7 +262,7 @@ class Trainer(object):
             loss.backward()
 
 
-            print(deformator_opt)
+            print(deformator)
             for param in deformator.parameters():
                 print(param.grad.norm(2).item())
             if deformator_opt is not None:
