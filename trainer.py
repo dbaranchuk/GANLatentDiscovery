@@ -218,6 +218,8 @@ class Trainer(object):
             if isinstance(img_shifted_feats, list):
                 img_shifted_feats = img_shifted_feats[0]
 
+            print(imgs_shifted.requires_grad, img_shifted_feats.requires_grad)
+
             # mean_img_feats = img_feats.mean(0)
             # std_img_feats = img_feats.std(0)
             # img_feats_distr = torch.distributions.Normal(loc=mean_img_feats, scale=std_img_feats)
