@@ -45,7 +45,7 @@ class Params(object):
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.inception_loss_weight = 1000.0
+        self.inception_loss_weight = 10000000.0
 
         self.steps_per_log = 10
         self.steps_per_save = 10000
