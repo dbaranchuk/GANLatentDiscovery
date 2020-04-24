@@ -45,7 +45,7 @@ class Trainer(object):
         z_adv = nn.Parameter(z_orig, requires_grad=True)
         optimizer = torch.optim.Adam([z_adv], lr=0.001, betas=(0.9, 0.999))
 
-        imgs = to_image(G(z_orig))
+        imgs = G(z_orig)
         img_feats = inception(((imgs + 1.) / 2.).clamp(0, 1))
         if isinstance(img_feats, list):
             img_feats = img_feats[0]
