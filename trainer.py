@@ -62,7 +62,7 @@ class Trainer(object):
             optimizer.zero_grad()
 
             imgs_adv = G(z_adv)
-            imgs_loss = ((imgs - imgs_adv) ** 2).mean()
+            imgs_loss = 0.0 * ((imgs - imgs_adv) ** 2).mean()
 
             img_adv_feats = inception(((imgs_adv + 1.) / 2.).clamp(0, 1))
             if isinstance(img_adv_feats, list):
