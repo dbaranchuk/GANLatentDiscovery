@@ -9,10 +9,18 @@ import matplotlib
 matplotlib.use("Agg")
 
 import numpy as np
-from constants import WEIGHTS
 from models.gan_load import make_big_gan, make_proggan, make_external
 from trainer import Trainer, Params
 from inception import InceptionV3
+
+
+WEIGHTS = {
+    'BigGAN': 'models/pretrained/BigGAN/138k/G_ema.pth',
+    'ProgGAN': 'models/pretrained/ProgGAN/100_celeb_hq_network-snapshot-010403.pth',
+    'SN_MNIST': 'models/pretrained/GANs/SN_MNIST',
+    'Anime_64': 'models/pretrained/GANs/SN_Anime',
+}
+
 
 def main():
     parser = argparse.ArgumentParser(description='Latent space rectification')
