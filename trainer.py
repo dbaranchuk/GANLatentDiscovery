@@ -45,15 +45,14 @@ class Trainer(object):
         z_adv = nn.Parameter(z_orig, requires_grad=True)
         optimizer = torch.optim.Adam([z_adv], lr=0.001, betas=(0.9, 0.999))
 
-        imgs = G(z_orig)
-        img_feats = inception(((imgs + 1.) / 2.).clamp(0, 1))
+        imgs = G(z_orig).detach()
+        img_feats = inception(((imgs + 1.) / 2.).clamp(0, 1)).detach()
         if isinstance(img_feats, list):
             img_feats = img_feats[0]
 
         os.makedirs("orig_samples", exist_ok=True)
         os.makedirs("adv_samples", exist_ok=True)
 
-        print(imgs, img_feats)
         for i in range(len(imgs)):
             to_image(imgs[i]).save(f"orig_samples/{i}.png")
 
