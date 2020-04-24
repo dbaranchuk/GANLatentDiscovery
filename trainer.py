@@ -53,6 +53,7 @@ class Trainer(object):
         os.makedirs("orig_samples", exist_ok=True)
         os.makedirs("adv_samples", exist_ok=True)
 
+        print(imgs, img_feats)
         for i in range(len(imgs)):
             to_image(imgs[i]).save(f"orig_samples/{i}.png")
 
