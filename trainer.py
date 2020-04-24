@@ -46,9 +46,9 @@ class Trainer(object):
         optimizer = torch.optim.Adam([z_adv], lr=0.001, betas=(0.9, 0.999))
 
         imgs = G(z_orig).detach()
-        img_feats = inception(((imgs + 1.) / 2.).clamp(0, 1)).detach()
+        img_feats = inception(((imgs + 1.) / 2.).clamp(0, 1))
         if isinstance(img_feats, list):
-            img_feats = img_feats[0]
+            img_feats = img_feats[0].detach()
 
         os.makedirs("orig_samples", exist_ok=True)
         os.makedirs("adv_samples", exist_ok=True)
