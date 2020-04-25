@@ -90,8 +90,6 @@ class Trainer(object):
                     diff_image = (imgs_adv[i] - imgs[i]).mean(0).cpu().detach()
                     diff_img = axes[2].imshow(diff_image, cmap='viridis')
                     fig.colorbar(diff_img, cax=axes[2], orientation='vertical')
-
-                    axes[2].colorbar()
                     axes[2].set_title("Difference")
 
                     fig_to_image(fif).save(f"adv_samples/{i}_step{step}.png")
