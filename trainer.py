@@ -92,7 +92,7 @@ class Trainer(object):
                     fig.colorbar(diff_img, cax=axes[2], orientation='vertical')
                     axes[2].set_title("Difference")
 
-                    fig_to_image(fif).save(f"adv_samples/{i}_step{step}.png")
+                    fig_to_image(fig).save(f"adv_samples/{i}_step{step}.png")
 
 
 
