@@ -47,7 +47,7 @@ class Trainer(object):
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
         z_adv = nn.Parameter(z_orig, requires_grad=True)
-        optimizer = torch.optim.Adam([z_adv], lr=0.001, betas=(0.9, 0.999))
+        optimizer = torch.optim.Adam([z_adv + 1e-6], lr=0.001, betas=(0.9, 0.999))
 
         imgs = G(z_orig).detach()
         img_feats = inception(((imgs + 1.) / 2.).clamp(0, 1))
@@ -60,7 +60,7 @@ class Trainer(object):
             G.zero_grad()
             optimizer.zero_grad()
 
-            imgs_adv = G(z_adv + 1e-6)
+            imgs_adv = G(z_adv)
             imgs_loss = self.p.l2_loss_weight * ((imgs - imgs_adv) ** 2).mean()
 
             img_adv_feats = inception(((imgs_adv + 1.) / 2.).clamp(0, 1))
@@ -89,7 +89,7 @@ class Trainer(object):
 
                     diff_image = (imgs_adv[i] - imgs[i]).mean(0).cpu().detach()
                     diff_img = axes[2].imshow(diff_image, cmap='hot')
-                    fig.colorbar(diff_img, cax=axes[2], orientation='vertical')
+                    # fig.colorbar(diff_img, cax=axes[2], orientation='vertical')
                     axes[2].set_title("Difference")
 
                     fig_to_image(fig).save(f"adv_samples/{i}_step{step}.png")
