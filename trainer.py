@@ -13,7 +13,7 @@ class Params(object):
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.inception_loss_weight = 100.0
+        self.inception_loss_weight = 1.0
 
         self.steps_per_log = 10
         self.steps_per_save = 10000
@@ -61,8 +61,8 @@ class Trainer(object):
             G.zero_grad()
             optimizer.zero_grad()
 
-            imgs_adv = G(z_adv + 1e-5)
-            imgs_loss = 0.0 * ((imgs - imgs_adv) ** 2).mean()
+            imgs_adv = G(z_adv + 1e-6)
+            imgs_loss = ((imgs - imgs_adv) ** 2).mean()
 
             img_adv_feats = inception(((imgs_adv + 1.) / 2.).clamp(0, 1))
             if isinstance(img_adv_feats, list):
