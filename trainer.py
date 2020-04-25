@@ -59,6 +59,7 @@ class Trainer(object):
         optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
 
         imgs = G(z_orig).detach()
+        orig_imgs = imgs.copy()
         for i in range(self.p.batch_size):
             imgs[i] = transform(to_image(imgs[i]))
         img_feats = inception(imgs).detach()
@@ -71,7 +72,7 @@ class Trainer(object):
             optimizer.zero_grad()
 
             imgs_adv = G(z_adv)
-            imgs_loss = self.p.l2_loss_weight * ((imgs - imgs_adv) ** 2).mean()
+            imgs_loss = self.p.l2_loss_weight * ((orig_imgs - imgs_adv) ** 2).mean()
 
 
             imgs_adv = ((imgs_adv + 1.) / 2.).clamp(0, 1)
