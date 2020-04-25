@@ -88,7 +88,7 @@ class Trainer(object):
                     plt.imshow(diff_image, cmap='viridis')
                     plt.colorbar()
 
-                    pp = PdfPages("adv_samples/diff_{i}_step{step}.pdf")
+                    pp = PdfPages(f"adv_samples/diff_{i}_step{step}.pdf")
                     pp.savefig(bbox_inches='tight')
                     pp.close()
 
