@@ -55,6 +55,7 @@ class Trainer(object):
             img_feats = img_feats[0].detach()
 
         os.makedirs("adv_samples", exist_ok=True)
+        torch.save(z_orig, "adv_samples/orig_z.pt")
 
         for step in range(0, self.p.n_steps, 1):
             G.zero_grad()
@@ -77,6 +78,7 @@ class Trainer(object):
             if step % self.p.steps_per_log == 0:
                 self.log(step, imgs_loss, inception_loss)
             if step % self.p.steps_per_save == 0:
+                torch.save(z_adv.data, f"adv_samples/adv_z_{step}.pt")
                 for i in range(len(imgs_adv)):
 
                     fig, axes = plt.subplots(1, 3, figsize=(12, 6))
@@ -88,8 +90,7 @@ class Trainer(object):
                     axes[1].set_title("Adversarial")
 
                     diff_image = (imgs_adv[i] - imgs[i]).mean(0).cpu().detach()
-                    diff_img = axes[2].imshow(diff_image)
-                    # fig.colorbar(diff_img, cax=axes[2], orientation='vertical')
+                    axes[2].imshow(diff_image)
                     axes[2].set_title("Difference")
 
                     fig_to_image(fig).save(f"adv_samples/{i}_step{step}.png")
