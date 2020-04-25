@@ -13,9 +13,9 @@ class Params(object):
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.inception_loss_weight = 1.0
+        self.l2_loss_weight = 10.0
 
-        self.steps_per_log = 10
+        self.steps_per_log = 100
         self.steps_per_save = 10000
 
         for key, val in kwargs.items():
@@ -62,20 +62,21 @@ class Trainer(object):
             optimizer.zero_grad()
 
             imgs_adv = G(z_adv + 1e-6)
-            imgs_loss = ((imgs - imgs_adv) ** 2).mean()
+            imgs_loss = self.p.l2_loss_weight * ((imgs - imgs_adv) ** 2).mean()
 
             img_adv_feats = inception(((imgs_adv + 1.) / 2.).clamp(0, 1))
             if isinstance(img_adv_feats, list):
                 img_adv_feats = img_adv_feats[0]
 
             l2 = ((img_feats - img_adv_feats) ** 2).mean()
-            inception_loss = self.p.inception_loss_weight * l2
+            inception_loss = l2
 
             loss = imgs_loss - inception_loss
             loss.backward()
             optimizer.step()
 
-            self.log(step, imgs_loss, inception_loss)
+            if step % self.p.steps_per_log == 0:
+                self.log(step, imgs_loss, inception_loss)
             if step % self.p.steps_per_save == 0:
                 for i in range(len(imgs_adv)):
                     to_image(imgs_adv[i]).save(f"adv_samples/{i}_step{step}.png")
