@@ -79,7 +79,6 @@ class Trainer(object):
                                      mode='bilinear', align_corners=False)
             mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
             std = torch.tensor([0.229, 0.224, 0.225]).cuda()
-            print(imgs_adv.shape)
             imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
 
             img_adv_feats = inception(imgs_adv)
