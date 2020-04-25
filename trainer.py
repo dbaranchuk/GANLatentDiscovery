@@ -1,11 +1,11 @@
 import os
 import torch
-from torch import nn
 from utils import make_noise
 from torch_tools.visualization import to_image
 from matplotlib import pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 
+import torch.nn as nn
+import torch.nn.functional as F
 from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Normalize
 from visualization import fig_to_image
 
@@ -59,10 +59,9 @@ class Trainer(object):
         optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
 
         imgs = G(z_orig).detach()
-        pil_imgs = []
         for i in range(self.p.batch_size):
-            pil_imgs.append(to_image(imgs[i]))
-        img_feats = inception(transform(pil_imgs)).detach()
+            imgs[i] = transform(to_image(imgs[i]))
+        img_feats = inception(imgs).detach()
 
         os.makedirs("adv_samples", exist_ok=True)
         torch.save(z_orig, "adv_samples/orig_z.pt")
@@ -74,10 +73,16 @@ class Trainer(object):
             imgs_adv = G(z_adv)
             imgs_loss = self.p.l2_loss_weight * ((imgs - imgs_adv) ** 2).mean()
 
-            pil_adv_imgs = []
-            for i in range(self.p.batch_size):
-                pil_adv_imgs.append(to_image(imgs_adv[i]))
-            img_adv_feats = inception(transform(pil_adv_imgs))
+
+            imgs_adv = ((imgs_adv + 1.) / 2.).clamp(0, 1)
+            imgs_adv = F.interpolate(imgs_adv, size=(299, 299),
+                                     mode='bilinear', align_corners=False)
+            mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
+            std = torch.tensor([0.229, 0.224, 0.225]).cuda()
+            print(imgs_adv.shape)
+            imgs_adv = (imgs_adv - mean) / std
+
+            img_adv_feats = inception(imgs_adv)
             perceptual_loss = ((img_feats - img_adv_feats) ** 2).mean()
 
             loss = imgs_loss - perceptual_loss
