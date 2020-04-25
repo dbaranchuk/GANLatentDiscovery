@@ -54,11 +54,11 @@ class Trainer(object):
         if isinstance(img_feats, list):
             img_feats = img_feats[0].detach()
 
-        os.makedirs("orig_samples", exist_ok=True)
+        # os.makedirs("orig_samples", exist_ok=True)
         os.makedirs("adv_samples", exist_ok=True)
 
-        for i in range(len(imgs)):
-            to_image(imgs[i]).save(f"orig_samples/{i}.png")
+        # for i in range(len(imgs)):
+        #     to_image(imgs[i]).save(f"orig_samples/{i}.png")
 
 
         for step in range(0, self.p.n_steps, 1):
