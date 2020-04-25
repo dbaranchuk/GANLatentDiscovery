@@ -79,7 +79,7 @@ class Trainer(object):
             if step % self.p.steps_per_save == 0:
                 for i in range(len(imgs_adv)):
 
-                    f, axes = plt.subplots(1, 3, figsize=(12, 6))
+                    fig, axes = plt.subplots(1, 3, figsize=(12, 6))
 
                     axes[0].imshow(to_image(imgs[i]))
                     axes[0].set_title("Original")
@@ -88,11 +88,13 @@ class Trainer(object):
                     axes[1].set_title("Adversarial")
 
                     diff_image = (imgs_adv[i] - imgs[i]).mean(0).cpu().detach()
-                    axes[2].imshow(diff_image, cmap='viridis')
+                    diff_img = axes[2].imshow(diff_image, cmap='viridis')
+                    fig.colorbar(diff_img, cax=axes[2], orientation='vertical')
+
                     axes[2].colorbar()
                     axes[2].set_title("Difference")
 
-                    fig_to_image(f).save(f"adv_samples/{i}_step{step}.png")
+                    fig_to_image(fif).save(f"adv_samples/{i}_step{step}.png")
 
 
 
