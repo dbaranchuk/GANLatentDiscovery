@@ -84,8 +84,7 @@ class Trainer(object):
                 for i in range(len(imgs_adv)):
                     to_image(imgs_adv[i]).save(f"adv_samples/{i}_step{step}.png")
 
-                    print(abs(imgs_adv[i] - imgs[i]).mean(0).shape)
-                    diff_image = (imgs_adv[i] - imgs[i]).mean(0)
+                    diff_image = (imgs_adv[i] - imgs[i]).mean(0).cpu().detach()
                     plt.imshow(diff_image, cmap='viridis')
                     plt.colorbar()
 
