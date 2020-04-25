@@ -61,7 +61,7 @@ class Trainer(object):
         imgs = G(z_orig).detach()
         orig_imgs = imgs.clone()
 
-        imgs = torch.cat([transform(to_image(img))[None] for img in imgs])
+        imgs = torch.cat([transform(to_image(img))[None] for img in imgs]).cuda()
         img_feats = inception(imgs).detach()
 
         os.makedirs("adv_samples", exist_ok=True)
