@@ -59,7 +59,7 @@ class Trainer(object):
         optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
 
         imgs = G(z_orig).detach()
-        orig_imgs = imgs.copy()
+        orig_imgs = imgs.clone()
         for i in range(self.p.batch_size):
             imgs[i] = transform(to_image(imgs[i]))
         img_feats = inception(imgs).detach()
