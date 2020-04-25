@@ -88,7 +88,7 @@ class Trainer(object):
                     axes[1].set_title("Adversarial")
 
                     diff_image = (imgs_adv[i] - imgs[i]).mean(0).cpu().detach()
-                    diff_img = axes[2].imshow(diff_image, cmap='hot')
+                    diff_img = axes[2].imshow(diff_image)
                     # fig.colorbar(diff_img, cax=axes[2], orientation='vertical')
                     axes[2].set_title("Difference")
 
