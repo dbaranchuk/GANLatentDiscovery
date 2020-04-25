@@ -60,8 +60,8 @@ class Trainer(object):
 
         imgs = G(z_orig).detach()
         orig_imgs = imgs.clone()
-        for i in range(self.p.batch_size):
-            imgs[i] = transform(to_image(imgs[i]))
+
+        imgs = torch.tensor([transform(to_image(img)) for img in imgs])
         img_feats = inception(imgs).detach()
 
         os.makedirs("adv_samples", exist_ok=True)
