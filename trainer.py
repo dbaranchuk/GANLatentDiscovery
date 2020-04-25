@@ -54,12 +54,7 @@ class Trainer(object):
         if isinstance(img_feats, list):
             img_feats = img_feats[0].detach()
 
-        # os.makedirs("orig_samples", exist_ok=True)
         os.makedirs("adv_samples", exist_ok=True)
-
-        # for i in range(len(imgs)):
-        #     to_image(imgs[i]).save(f"orig_samples/{i}.png")
-
 
         for step in range(0, self.p.n_steps, 1):
             G.zero_grad()
@@ -87,15 +82,15 @@ class Trainer(object):
                     f, axes = plt.subplots(1, 3, figsize=(12, 6))
 
                     axes[0].imshow(to_image(imgs[i]))
-                    axes[0].title("Original")
+                    axes[0].set_title("Original")
 
                     axes[1].imshow(to_image(imgs_adv[i]))
-                    axes[1].title("Adversarial")
+                    axes[1].set_title("Adversarial")
 
                     diff_image = (imgs_adv[i] - imgs[i]).mean(0).cpu().detach()
                     axes[2].imshow(diff_image, cmap='viridis')
                     axes[2].colorbar()
-                    axes[2].title("Difference")
+                    axes[2].set_title("Difference")
 
                     fig_to_image(f).save(f"adv_samples/{i}_step{step}.png")
 
