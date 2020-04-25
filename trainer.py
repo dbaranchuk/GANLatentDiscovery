@@ -6,6 +6,7 @@ from torch_tools.visualization import to_image
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
+from visualization import fig_to_image
 
 class Params(object):
     def __init__(self, **kwargs):
@@ -82,15 +83,22 @@ class Trainer(object):
                 self.log(step, imgs_loss, inception_loss)
             if step % self.p.steps_per_save == 0:
                 for i in range(len(imgs_adv)):
-                    to_image(imgs_adv[i]).save(f"adv_samples/{i}_step{step}.png")
+
+                    f, axes = plt.subplots(1, 3, figsize=(12, 6))
+
+                    axes[0].imshow(to_image(imgs[i]))
+                    axes[0].title("Original")
+
+                    axes[1].imshow(to_image(imgs_adv[i]))
+                    axes[1].title("Adversarial")
 
                     diff_image = (imgs_adv[i] - imgs[i]).mean(0).cpu().detach()
-                    plt.imshow(diff_image, cmap='viridis')
-                    plt.colorbar()
+                    axes[2].imshow(diff_image, cmap='viridis')
+                    axes[2].colorbar()
+                    axes[2].title("Difference")
 
-                    pp = PdfPages(f"adv_samples/diff_{i}_step{step}.pdf")
-                    pp.savefig(bbox_inches='tight')
-                    pp.close()
+                    fig_to_image(f).save(f"adv_samples/{i}_step{step}.png")
+
 
 
 
