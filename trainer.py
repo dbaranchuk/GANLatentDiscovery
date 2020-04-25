@@ -74,14 +74,13 @@ class Trainer(object):
             imgs_adv = G(z_adv)
             imgs_loss = self.p.l2_loss_weight * ((orig_imgs - imgs_adv) ** 2).mean()
 
-
             imgs_adv = ((imgs_adv + 1.) / 2.).clamp(0, 1)
             imgs_adv = F.interpolate(imgs_adv, size=(299, 299),
                                      mode='bilinear', align_corners=False)
             mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
             std = torch.tensor([0.229, 0.224, 0.225]).cuda()
             print(imgs_adv.shape)
-            imgs_adv = (imgs_adv - mean) / std
+            imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
 
             img_adv_feats = inception(imgs_adv)
             perceptual_loss = ((img_feats - img_adv_feats) ** 2).mean()
