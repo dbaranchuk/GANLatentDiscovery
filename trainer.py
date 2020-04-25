@@ -6,7 +6,9 @@ from torch_tools.visualization import to_image
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
+from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Normalize
 from visualization import fig_to_image
+
 
 class Params(object):
     def __init__(self, **kwargs):
@@ -39,10 +41,17 @@ class Trainer(object):
         os.makedirs(self.images_dir, exist_ok=True)
 
     def log(self, step, img_l2_loss, img_feat_l2_loss):
-            print('Step {} img_l2_loss: {:.3} img_feat_l2_loss: {:.3}'.format(step, img_l2_loss.item(),
+            print('Step {} img_l2_loss: {:.3} perceptual_loss: {:.3}'.format(step, img_l2_loss.item(),
                                                                               img_feat_l2_loss.item()))
 
     def train(self, G, inception):
+        transform = Compose([
+            Resize(299),
+            ToTensor(),
+            Normalize(mean=[0.485, 0.456, 0.406],
+                      std=[0.229, 0.224, 0.225])
+        ])
+
         G.cuda().eval()
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
@@ -50,9 +59,10 @@ class Trainer(object):
         optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
 
         imgs = G(z_orig).detach()
-        img_feats = inception(((imgs + 1.) / 2.).clamp(0, 1))
-        if isinstance(img_feats, list):
-            img_feats = img_feats[0].detach()
+        pil_imgs = []
+        for i in range(self.p.batch_size):
+            pil_imgs.append(to_image(imgs[i]))
+        img_feats = inception(transform(pil_imgs)).detach()
 
         os.makedirs("adv_samples", exist_ok=True)
         torch.save(z_orig, "adv_samples/orig_z.pt")
@@ -64,19 +74,18 @@ class Trainer(object):
             imgs_adv = G(z_adv)
             imgs_loss = self.p.l2_loss_weight * ((imgs - imgs_adv) ** 2).mean()
 
-            img_adv_feats = inception(((imgs_adv + 1.) / 2.).clamp(0, 1))
-            if isinstance(img_adv_feats, list):
-                img_adv_feats = img_adv_feats[0]
+            pil_adv_imgs = []
+            for i in range(self.p.batch_size):
+                pil_adv_imgs.append(to_image(imgs_adv[i]))
+            img_adv_feats = inception(transform(pil_adv_imgs))
+            perceptual_loss = ((img_feats - img_adv_feats) ** 2).mean()
 
-            l2 = ((img_feats - img_adv_feats) ** 2).mean()
-            inception_loss = l2
-
-            loss = imgs_loss - inception_loss
+            loss = imgs_loss - perceptual_loss
             loss.backward()
             optimizer.step()
 
             if step % self.p.steps_per_log == 0:
-                self.log(step, imgs_loss, inception_loss)
+                self.log(step, imgs_loss, perceptual_loss)
             if step % self.p.steps_per_save == 0:
                 torch.save(z_adv.data, f"adv_samples/adv_z_{step}.pt")
                 for i in range(len(imgs_adv)):
@@ -94,6 +103,7 @@ class Trainer(object):
                     axes[2].set_title("Difference")
 
                     fig_to_image(fig).save(f"adv_samples/{i}_step{step}.png")
+                    plt.close(fig)
 
 
 

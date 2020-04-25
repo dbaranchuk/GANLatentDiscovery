@@ -12,7 +12,7 @@ import numpy as np
 from models.gan_load import make_big_gan, make_proggan, make_external
 from trainer import Trainer, Params
 from inception import InceptionV3
-
+from torchvision.models import inception_v3
 
 WEIGHTS = {
     'BigGAN': 'models/pretrained/BigGAN/138k/G_ema.pth',
@@ -70,7 +70,9 @@ def main():
     else:
         G = make_external(weights_path).eval()
 
-    inception = InceptionV3(resize_input=True, requires_grad=False, use_fid_inception=True).cuda().eval()
+    inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
+    inception.fc = torch.nn.Identity()
+
     # training
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
 
