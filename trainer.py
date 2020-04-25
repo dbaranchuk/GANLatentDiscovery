@@ -3,6 +3,9 @@ import torch
 from torch import nn
 from utils import make_noise
 from torch_tools.visualization import to_image
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+
 
 class Params(object):
     def __init__(self, **kwargs):
@@ -80,6 +83,15 @@ class Trainer(object):
             if step % self.p.steps_per_save == 0:
                 for i in range(len(imgs_adv)):
                     to_image(imgs_adv[i]).save(f"adv_samples/{i}_step{step}.png")
+
+                    print(abs(imgs_adv[i] - imgs[i]).mean(0).shape)
+                    diff_image = (imgs_adv[i] - imgs[i]).mean(0)
+                    plt.imshow(diff_image, cmap='viridis')
+                    plt.colorbar()
+
+                    pp = PdfPages("adv_samples/diff_{i}_step{step}.pdf")
+                    pp.savefig(bbox_inches='tight')
+                    pp.close()
 
 
 
