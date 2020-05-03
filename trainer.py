@@ -52,7 +52,7 @@ class Trainer(object):
 
         # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
         self.p.batch_size = 30
-        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:3].reshape(-1, 2048)
         G.cuda().eval()
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
