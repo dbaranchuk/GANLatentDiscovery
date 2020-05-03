@@ -56,6 +56,10 @@ class Trainer(object):
         G.cuda().eval()
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
+
+        for i in range(self.p.batch_size):
+            z_orig[i] = z_orig[i]
+
         z_inv = nn.Parameter(z_orig, requires_grad=True)
         optimizer = torch.optim.Adam([z_inv], lr=0.001, betas=(0.9, 0.999))
         # optimizer = torch.optim.SGD([z_inv], lr=0.01)
@@ -88,10 +92,10 @@ class Trainer(object):
                 # ax = fig.add_subplot(1, 1, 1)
                 # ax.imshow(to_image(imgs_inv))
                 # ax.set_title(f"Mean Inversion")
-                fig, axes = plt.subplots(3, self.p.batch_size // 3, figsize=(24, 12))
+                fig, axes = plt.subplots(3, self.p.batch_size // 3, figsize=(24, 8))
                 for i in range(len(imgs_adv)):
                     axes[i // 10, i % 10].imshow(to_image(imgs_inv[i]))
-                    axes[i // 10, i % 10].set_title(f"Inversion {i}")
+                    # axes[i // 10, i % 10].set_title(f"Inversion {i}")
 
                 fig_to_image(fig).save(f"inv_samples/direction_0_1_2_step{step}.png")
                 plt.close(fig)
