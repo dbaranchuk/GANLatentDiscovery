@@ -56,8 +56,8 @@ class Trainer(object):
         G.cuda().eval()
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
-        z_adv = nn.Parameter(z_orig, requires_grad=True)
-        optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
+        z_inv = nn.Parameter(z_orig, requires_grad=True)
+        optimizer = torch.optim.Adam([z_inv], lr=0.003, betas=(0.9, 0.999))
 
 
         os.makedirs("inv_samples", exist_ok=True)
@@ -67,8 +67,8 @@ class Trainer(object):
             G.zero_grad()
             optimizer.zero_grad()
 
-            imgs_adv = G(z_adv)
-            imgs_adv = ((imgs_adv + 1.) / 2.).clamp(0, 1)
+            imgs_inv = G(z_inv)
+            imgs_adv = ((imgs_inv + 1.) / 2.).clamp(0, 1)
             imgs_adv = F.interpolate(imgs_adv, size=(299, 299),
                                      mode='bilinear', align_corners=False)
             mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
@@ -83,11 +83,14 @@ class Trainer(object):
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
             if step % self.p.steps_per_save == 0:
-                torch.save(z_adv.data, f"inv_samples/mean_inv_z_{step}.pt")
-                fig, axes = plt.subplots(1, self.p.batch_size, figsize=(12, 12))
-                for i in range(len(imgs_adv)):
-                    axes[i].imshow(to_image(imgs_adv[i]))
-                    axes[i].set_title(f"Inversion {i}")
+                torch.save(z_inv.cpu().data, f"inv_samples/mean_inv_z_{step}.pt")
+                fig = plt.Figure(figsize=(8, 6))
+                plt.imshow(to_image(imgs_inv))
+                plt.title(f"Mean Inversion")
+                # fig, axes = plt.subplots(1, self.p.batch_size, figsize=(12, 12))
+                # for i in range(len(imgs_adv)):
+                #     axes[i].imshow(to_image(imgs_adv[i]))
+                #     axes[i].set_title(f"Inversion {i}")
 
                 fig_to_image(fig).save(f"inv_samples/mean_step{step}.png")
                 plt.close(fig)
