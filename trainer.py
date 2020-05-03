@@ -90,8 +90,8 @@ class Trainer(object):
                 # ax.set_title(f"Mean Inversion")
                 fig, axes = plt.subplots(3, self.p.batch_size // 3, figsize=(12, 24))
                 for i in range(len(imgs_adv)):
-                    axes[i].imshow(to_image(imgs_inv[i]))
-                    axes[i].set_title(f"Inversion {i}")
+                    axes[i // 10, i % 10].imshow(to_image(imgs_inv[i]))
+                    axes[i // 10, i % 10].set_title(f"Inversion {i}")
 
                 fig_to_image(fig).save(f"inv_samples/direction_0_1_2_step{step}.png")
                 plt.close(fig)
