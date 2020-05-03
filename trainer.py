@@ -58,7 +58,7 @@ class Trainer(object):
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
 
         for i in range(self.p.batch_size):
-            z_orig[i] = z_orig[i]
+            z_orig[i] = z_orig[0]
 
         z_inv = nn.Parameter(z_orig, requires_grad=True)
         optimizer = torch.optim.Adam([z_inv], lr=0.001, betas=(0.9, 0.999))
