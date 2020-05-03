@@ -96,6 +96,7 @@ class Trainer(object):
                 plt.close(fig)
 
             if (step + 1) % (self.p.n_steps - 1000) == 0:
+                print((step + 1),(self.p.n_steps - 1000))
                 for param_group in optimizer.param_groups:
                     param_group['lr'] = 3e-4
 
