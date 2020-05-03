@@ -50,9 +50,9 @@ class Trainer(object):
         #               std=[0.229, 0.224, 0.225])
         # ])
 
-        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
-        self.p.batch_size = 1
-        # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))
+        # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
+        self.p.batch_size = 30
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))
         G.cuda().eval()
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
@@ -83,17 +83,17 @@ class Trainer(object):
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
             if step % self.p.steps_per_save == 0:
-                torch.save(z_inv.cpu().data, f"inv_samples/mean_inv_z_{step}.pt")
-                fig = plt.Figure(figsize=(8, 6))
-                ax = fig.add_subplot(1, 1, 1)
-                ax.imshow(to_image(imgs_inv))
-                ax.set_title(f"Mean Inversion")
-                # fig, axes = plt.subplots(1, self.p.batch_size, figsize=(12, 12))
-                # for i in range(len(imgs_adv)):
-                #     axes[i].imshow(to_image(imgs_adv[i]))
-                #     axes[i].set_title(f"Inversion {i}")
+                torch.save(z_inv.cpu().data, f"inv_samples/direction_0_1_2_inv_z_{step}.pt")
+                # fig = plt.Figure(figsize=(8, 6))
+                # ax = fig.add_subplot(1, 1, 1)
+                # ax.imshow(to_image(imgs_inv))
+                # ax.set_title(f"Mean Inversion")
+                fig, axes = plt.subplots(3, self.p.batch_size // 3, figsize=(12, 24))
+                for i in range(len(imgs_adv)):
+                    axes[i].imshow(to_image(imgs_inv[i]))
+                    axes[i].set_title(f"Inversion {i}")
 
-                fig_to_image(fig).save(f"inv_samples/mean_step{step}.png")
+                fig_to_image(fig).save(f"inv_samples/direction_0_1_2_step{step}.png")
                 plt.close(fig)
 
             if (step + 1) % (self.p.n_steps - 1000) == 0:
