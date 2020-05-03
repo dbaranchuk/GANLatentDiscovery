@@ -4,6 +4,7 @@ from utils import make_noise
 from torch_tools.visualization import to_image
 from matplotlib import pyplot as plt
 
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Normalize
@@ -41,7 +42,7 @@ class Trainer(object):
     def log(self, step, loss):
             print('Step {} loss: {:.3}'.format(step, loss.item()))
 
-    def train(self, G, inception, target_feats):
+    def train(self, G, inception):
         # transform = Compose([
         #     Resize(299),
         #     ToTensor(),
@@ -49,6 +50,9 @@ class Trainer(object):
         #               std=[0.229, 0.224, 0.225])
         # ])
 
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None]
+        self.p.batch_size = 1
+        # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))
         G.cuda().eval()
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
@@ -79,13 +83,13 @@ class Trainer(object):
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
             if step % self.p.steps_per_save == 0:
-                torch.save(z_adv.data, f"inv_samples/inv_z_{step}.pt")
-                fig, axes = plt.subplots(1, len(imgs_adv), figsize=(12, 12))
+                torch.save(z_adv.data, f"inv_samples/mean_inv_z_{step}.pt")
+                fig, axes = plt.subplots(1, self.p.batch_size, figsize=(12, 12))
                 for i in range(len(imgs_adv)):
                     axes[i].imshow(to_image(imgs_adv[i]))
                     axes[i].set_title(f"Inversion {i}")
 
-                fig_to_image(fig).save(f"inv_samples/step{step}.png")
+                fig_to_image(fig).save(f"inv_samples/mean_step{step}.png")
                 plt.close(fig)
 
 
