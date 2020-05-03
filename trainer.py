@@ -85,8 +85,9 @@ class Trainer(object):
             if step % self.p.steps_per_save == 0:
                 torch.save(z_inv.cpu().data, f"inv_samples/mean_inv_z_{step}.pt")
                 fig = plt.Figure(figsize=(8, 6))
-                plt.imshow(to_image(imgs_inv))
-                plt.title(f"Mean Inversion")
+                ax = fig.add_subplot(1, 1, 1)
+                ax.imshow(to_image(imgs_inv))
+                ax.set_title(f"Mean Inversion")
                 # fig, axes = plt.subplots(1, self.p.batch_size, figsize=(12, 12))
                 # for i in range(len(imgs_adv)):
                 #     axes[i].imshow(to_image(imgs_adv[i]))
