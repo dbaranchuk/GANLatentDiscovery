@@ -50,7 +50,7 @@ class Trainer(object):
         #               std=[0.229, 0.224, 0.225])
         # ])
 
-        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None]
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
         self.p.batch_size = 1
         # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))
         G.cuda().eval()
