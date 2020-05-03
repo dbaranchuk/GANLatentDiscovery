@@ -51,8 +51,8 @@ class Trainer(object):
         # ])
 
         # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
-        self.p.batch_size = 40
-        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:4].reshape(-1, 2048).cuda()
+        self.p.batch_size = 30
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:3].reshape(-1, 2048).cuda()
         G.cuda().eval()
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
@@ -88,7 +88,7 @@ class Trainer(object):
                 # ax = fig.add_subplot(1, 1, 1)
                 # ax.imshow(to_image(imgs_inv))
                 # ax.set_title(f"Mean Inversion")
-                fig, axes = plt.subplots(4, self.p.batch_size // 4, figsize=(24, 36))
+                fig, axes = plt.subplots(3, self.p.batch_size // 3, figsize=(24, 36))
                 for i in range(len(imgs_adv)):
                     axes[i // 10, i % 10].imshow(to_image(imgs_inv[i]))
                     axes[i // 10, i % 10].set_title(f"Inversion {i}")
