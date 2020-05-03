@@ -57,8 +57,8 @@ class Trainer(object):
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
         z_inv = nn.Parameter(z_orig, requires_grad=True)
-        # optimizer = torch.optim.Adam([z_inv], lr=0.001, betas=(0.9, 0.999))
-        optimizer = torch.optim.SGD([z_inv], lr=0.01)
+        optimizer = torch.optim.Adam([z_inv], lr=0.001, betas=(0.9, 0.999))
+        # optimizer = torch.optim.SGD([z_inv], lr=0.01)
 
         os.makedirs("inv_samples", exist_ok=True)
         torch.save(z_orig, "inv_samples/orig_z.pt")
