@@ -95,9 +95,9 @@ class Trainer(object):
                 fig_to_image(fig).save(f"inv_samples/mean_step{step}.png")
                 plt.close(fig)
 
-            if (step + 1) % 1000 == 0:
+            if (step + 1) % (self.p.n_steps - 1000) == 0:
                 for param_group in optimizer.param_groups:
-                    param_group['lr'] = 1e-4
+                    param_group['lr'] = 3e-4
 
 
 
