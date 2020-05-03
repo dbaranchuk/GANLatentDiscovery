@@ -57,7 +57,7 @@ class Trainer(object):
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
         z_inv = nn.Parameter(z_orig, requires_grad=True)
-        optimizer = torch.optim.Adam([z_inv], lr=0.003, betas=(0.9, 0.999))
+        optimizer = torch.optim.Adam([z_inv], lr=0.001, betas=(0.9, 0.999))
 
 
         os.makedirs("inv_samples", exist_ok=True)
@@ -95,6 +95,6 @@ class Trainer(object):
                 fig_to_image(fig).save(f"inv_samples/mean_step{step}.png")
                 plt.close(fig)
 
-
+            if
 
 
