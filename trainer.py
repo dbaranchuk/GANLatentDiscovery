@@ -57,27 +57,27 @@ class Trainer(object):
         # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:num_directions].reshape(-1, 2048).cuda()
 
         print('Find the nearest sample')
-        for class_idx in range(0, 1000, 5):
-            target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
-            # class_idx = 725
-            G.target_classes.data = torch.tensor(class_idx).cuda()
-            with torch.no_grad():
-                num_samples = 2048 #16384 #8192
-                num_batches = 16 #128
-                z_orig = make_noise(num_samples, G.dim_z).cuda()
-                orig_dists = torch.zeros(num_samples)
-                batch_size = num_samples // num_batches
-                for i in range(num_batches):
-                    orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
+        # for class_idx in range(0, 1000, 5):
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
+        class_idx = 95
+        G.target_classes.data = torch.tensor(class_idx).cuda()
+        with torch.no_grad():
+            num_samples = 16384 #8192
+            num_batches = 128
+            z_orig = make_noise(num_samples, G.dim_z).cuda()
+            orig_dists = torch.zeros(num_samples)
+            batch_size = num_samples // num_batches
+            for i in range(num_batches):
+                orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
 
-                    feats = inception(orig_imgs)[0].view(-1, 2048)
-                    orig_dists[i * batch_size: (i+1) * batch_size] = \
-                        ((target_feats - feats) ** 2).mean(-1).cpu()
-                nearest_sample = orig_dists.argmin().item()
-                z = z_orig[nearest_sample][None]
-                print("Class idx ", class_idx,
-                      f" | Min: {min(orig_dists).item():.3}",
-                      f" | Mean: {orig_dists.mean().item():.3}")
+                feats = inception(orig_imgs)[0].view(-1, 2048)
+                orig_dists[i * batch_size: (i+1) * batch_size] = \
+                    ((target_feats - feats) ** 2).mean(-1).cpu()
+            nearest_sample = orig_dists.argmin().item()
+            z = z_orig[nearest_sample][None]
+            print("Class idx ", class_idx,
+                  f" | Min: {min(orig_dists).item():.3}",
+                  f" | Mean: {orig_dists.mean().item():.3}")
 
         # G.target_classes.data = torch.tensor(725).cuda()
         # z = torch.zeros(num_directions * 8, 120).cuda()
