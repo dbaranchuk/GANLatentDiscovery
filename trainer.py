@@ -147,7 +147,7 @@ class Trainer(object):
                 for i in range(len(imgs_adv)):
                     axes[i // 8, i % 8].imshow(to_image(imgs_inv[i]))
                     axes[i // 8, i % 8].set_title(f"Direction {i // 8}")
-                    axes[i // 8, i % 8].set_axis('off')
+                    axes[i // 8, i % 8].axis('off')
                 fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_step{step}.png")
                 # fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_step{step}.png")
                 plt.close(fig)
