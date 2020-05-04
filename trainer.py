@@ -123,7 +123,7 @@ class Trainer(object):
             #     optimizer.step(closure)
             optimizer.zero_grad()
             imgs_inv = G(z_inv)
-            img_adv_feats = inception(imgs_inv)[0]
+            img_adv_feats = inception(imgs_inv)[0].view(-1, 2048)
             loss = ((target_feats - img_adv_feats) ** 2).mean()
             loss.backward()
             optimizer.step()
