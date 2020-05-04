@@ -82,8 +82,8 @@ class Trainer(object):
 
         for step in range(0, self.p.n_steps, 1):
             if step == 10000:
-                optimizer = torch.optim.LBFGS([z_inv], lr=0.1, max_iter=20, max_eval=None, tolerance_grad=1e-07,
-                                              tolerance_change=1e-09, history_size=100)
+                optimizer = torch.optim.LBFGS([z_inv], lr=0.8, max_iter=100, max_eval=None, tolerance_grad=1e-07,
+                                              tolerance_change=1e-09, history_size=200)
 
             G.zero_grad()
 
@@ -122,11 +122,6 @@ class Trainer(object):
                 ax.imshow(to_image(imgs_inv))
                 fig_to_image(fig).save(f"inv_samples/true_inversion_step{step}.png")
                 plt.close(fig)
-
-            if (step + 1) % (self.p.n_steps - 1000) == 0:
-                print((step + 1),(self.p.n_steps - 1000))
-                for param_group in optimizer.param_groups:
-                    param_group['lr'] = 1e-4
 
     # def train(self, G, inception):
     #     # transform = Compose([
