@@ -53,15 +53,25 @@ class Trainer(object):
         target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/0.png")).cuda()[None]
         with torch.no_grad():
             target_feats = inception(target_img)
-        self.p.batch_size = 1
 
         G.cuda().eval()
-
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
 
-        # ((target_feats - img_adv_feats) ** 2).mean()
+        print('Find the nearest sample')
+        with torch.no_grad():
+            num_samples = 1024
+            orig_dists = torch.zeros(num_samples)
+            batch_size = num_samples // 8
+            for i in range(8):
+                orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
+                orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
+                                     mode='bilinear', align_corners=False)
+                feats = inception(orig_imgs)
+                orig_dists[i * batch_size: (i+1) * batch_size] = (target_feats - feats).norm(2).mean(-1)
+            nearest_sample = orig_dists.argmin()
 
-        z_inv = nn.Parameter(z_orig, requires_grad=True)
+        print("Nearest sample: ", nearest_sample)
+        z_inv = nn.Parameter(z_orig[nearest_sample], requires_grad=True)
         optimizer = torch.optim.Adam([z_inv], lr=0.003, betas=(0.9, 0.999))
 
         os.makedirs("inv_samples", exist_ok=True)
@@ -88,9 +98,6 @@ class Trainer(object):
             loss = ((target_feats - img_adv_feats) ** 2).mean()
             loss.backward()
             optimizer.step()
-
-            with torch.no_grad():
-                target_feats = inception(target_img)
 
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
