@@ -59,7 +59,7 @@ class Trainer(object):
 
         print('Find the nearest sample')
 
-        for class_idx in range(0, 1000, 100):
+        for class_idx in range(0, 1000, 50):
             G.target_classes.data = torch.tensor(class_idx).cuda()
             with torch.no_grad():
                 num_samples = 8192
