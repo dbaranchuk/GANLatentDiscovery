@@ -73,7 +73,6 @@ def main():
     inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
     inception.fc = torch.nn.Identity()
     for param in inception.parameters():
-        print(param.requires_grad)
         param.requires_grad = False
 
     # training
