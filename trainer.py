@@ -148,7 +148,7 @@ class Trainer(object):
                 ax.imshow(to_image(imgs_inv))
                 ax.set_title(f"Mean | L2: {loss.item():.3}")
                 ax.axis("off")
-                fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_{class_idx}_step{step}.png")
+                fig_to_image(fig).save(f"inv_samples/gan_gaussian_mean_inversion_{class_idx}_step{step}.png")
 
                 # fig, axes = plt.subplots(num_directions, 8, figsize=(24, 14))
                 #
