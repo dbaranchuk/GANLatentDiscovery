@@ -53,9 +53,8 @@ class Trainer(object):
         # target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/0.png")).cuda()[None]
         # with torch.no_grad():
         #     target_feats = inception(2*target_img - 1)
-        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
-
-        G.cuda().eval()
+        # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:5].reshape(-1, 2048).cuda()
 
         print('Find the nearest sample')
 
@@ -77,27 +76,31 @@ class Trainer(object):
         #         torch.cuda.empty_cache()
 
         G.target_classes.data = torch.tensor(405).cuda()
-        with torch.no_grad():
-            num_samples = 8192
-            num_batches = 64
-            z_orig = make_noise(num_samples, G.dim_z).cuda()
-            orig_dists = torch.zeros(num_samples)
-            batch_size = num_samples // num_batches
-            for i in range(num_batches):
-                orig_imgs = G(z_orig[i * batch_size: (i + 1) * batch_size])
-                orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
-                                          mode='bilinear', align_corners=False)
-                feats = inception(orig_imgs)
-                orig_dists[i * batch_size: (i + 1) * batch_size] = ((target_feats - feats) ** 2).mean(-1).cpu()
-            nearest_sample = orig_dists.argmin().item()
+        z = torch.zeros(40, 2048).cuda()
+        for sample_id in range(40):
+            with torch.no_grad():
+                num_samples = 8192
+                num_batches = 64
+                z_orig = make_noise(num_samples, G.dim_z).cuda()
+                orig_dists = torch.zeros(num_samples)
+                batch_size = num_samples // num_batches
+                for i in range(num_batches):
+                    orig_imgs = G(z_orig[i * batch_size: (i + 1) * batch_size])
+                    orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
+                                              mode='bilinear', align_corners=False)
+                    feats = inception(orig_imgs)
+                    orig_dists[i * batch_size: (i + 1) * batch_size] = \
+                        ((target_feats[sample_id][None] - feats) ** 2).mean(-1).cpu()
+                nearest_sample = orig_dists.argmin().item()
+            print(sample_id, nearest_sample, orig_dists[nearest_sample].item())
+            z[sample_id] = z_orig[nearest_sample]
             torch.cuda.empty_cache()
+            # z = z_orig[nearest_sample][None]
+            # print("Nearest sample: ", nearest_sample)
 
-        print("Nearest sample: ", nearest_sample)
-        z_inv = nn.Parameter(z_orig[nearest_sample][None], requires_grad=True)
+        z_inv = nn.Parameter(z, requires_grad=True)
         optimizer = torch.optim.Adam([z_inv], lr=0.01)
         os.makedirs("inv_samples", exist_ok=True)
-        torch.save(z_orig, "inv_samples/orig_z.pt")
-
 
         for step in range(0, self.p.n_steps, 1):
             # if step == 10000:
@@ -135,11 +138,16 @@ class Trainer(object):
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
             if step % self.p.steps_per_save == 0:
-                # torch.save(z_inv.cpu().data, f"inv_samples/direction_0_1_2_inv_z_{step}.pt")
-                fig = plt.Figure(figsize=(8, 6))
-                ax = fig.add_subplot(1, 1, 1)
-                ax.imshow(to_image(imgs_inv))
-                fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_step{step}.png")
+
+                # fig = plt.Figure(figsize=(8, 6))
+                # ax = fig.add_subplot(1, 1, 1)
+                # ax.imshow(to_image(imgs_inv))
+                fig, axes = plt.subplots(5, 8, figsize=(24, 16))
+                for i in range(len(imgs_adv)):
+                    axes[i // 8, i % 8].imshow(to_image(imgs_inv[i]))
+                    axes[i // 8, i % 8].set_title(f"Direction {i // 8}")
+                fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_4_step{step}.png")
+                # fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_step{step}.png")
                 plt.close(fig)
 
     # def train(self, G, inception):

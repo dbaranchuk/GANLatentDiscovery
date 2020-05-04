@@ -64,11 +64,11 @@ def main():
         weights_path = WEIGHTS[args.gan_type]
 
     if args.gan_type == 'BigGAN':
-        G = make_big_gan(weights_path, args.target_class).eval()
+        G = make_big_gan(weights_path, args.target_class).cuda().eval()
     elif args.gan_type == 'ProgGAN':
-        G = make_proggan(weights_path).eval()
+        G = make_proggan(weights_path).cuda().eval()
     else:
-        G = make_external(weights_path).eval()
+        G = make_external(weights_path).cuda().eval()
 
     inception = inception_v3(num_classes=1000, aux_logits=False,
                              pretrained=True, transform_input=False).cuda().eval()
