@@ -47,12 +47,12 @@ class Trainer(object):
         transform = Compose([
             Resize(299),
             ToTensor(),
-            Normalize(mean=[0.485, 0.456, 0.406],
-                      std=[0.229, 0.224, 0.225])
+            # Normalize(mean=[0.485, 0.456, 0.406],
+            #           std=[0.229, 0.224, 0.225])
         ])
         target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/3.png")).cuda()[None]
         with torch.no_grad():
-            target_feats = inception(target_img)
+            target_feats = inception(2*target_img - 1)
 
         G.cuda().eval()
 
