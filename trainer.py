@@ -93,7 +93,8 @@ class Trainer(object):
                     orig_dists[i * batch_size: (i + 1) * batch_size] = \
                         ((target_feats[sample_id][None] - feats) ** 2).mean(-1).cpu()
                 nearest_sample = orig_dists.argmin().item()
-            print(sample_id, nearest_sample, orig_dists[nearest_sample].item())
+                print(min(orig_dists).item())
+                print(sample_id, nearest_sample, orig_dists[nearest_sample].item())
             z[sample_id] = z_orig[nearest_sample]
             torch.cuda.empty_cache()
             # z = z_orig[nearest_sample][None]
