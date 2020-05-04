@@ -77,7 +77,7 @@ class Trainer(object):
             # std = torch.tensor([0.229, 0.224, 0.225]).cuda()
             # imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
 
-            img_adv_feats = inception(imgs_adv)
+            img_adv_feats = inception(imgs_adv.clamp(-1, 1))
             loss = ((target_feats - img_adv_feats) ** 2).mean()
             loss.backward()
             optimizer.step()
