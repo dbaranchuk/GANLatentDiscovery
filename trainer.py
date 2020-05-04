@@ -71,7 +71,7 @@ class Trainer(object):
                 orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
                 orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
                                      mode='bilinear', align_corners=False)
-                feats = inception(orig_imgs)
+                feats = inception(orig_imgs.clamp(-1, 1))
                 orig_dists[i * batch_size: (i+1) * batch_size] = ((target_feats - feats) ** 2).mean(-1).cpu()
             nearest_sample = orig_dists.argmin().item()
             torch.cuda.empty_cache()
@@ -139,19 +139,21 @@ class Trainer(object):
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
             if step % self.p.steps_per_save == 0:
-                with torch.no_grad():
-                    losses = ((target_feats - img_adv_feats) ** 2).mean(-1)
-                # fig = plt.Figure(figsize=(8, 6))
-                # ax = fig.add_subplot(1, 1, 1)
-                # ax.imshow(to_image(imgs_inv))
-                fig, axes = plt.subplots(num_directions, 8, figsize=(24, 14))
-
-                s = [-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2]
-                for i in range(len(imgs_adv)):
-                    axes[i // 8, i % 8].imshow(to_image(imgs_inv[i]))
-                    axes[i // 8, i % 8].set_title(f"{s[i % 8]} $\lambda_{i // 8}$ | L2: {losses[i].item():.3}")
-                    axes[i // 8, i % 8].axis('off')
-                fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_step{step}.png")
+                # with torch.no_grad():
+                #     losses = ((target_feats - img_adv_feats) ** 2).mean(-1)
+                fig = plt.Figure(figsize=(8, 6))
+                ax = fig.add_subplot(1, 1, 1)
+                ax.imshow(to_image(imgs_inv))
+                ax.set_title(f"Mean | L2: {loss.item():.3}")
+                ax.axis("off")
+                # fig, axes = plt.subplots(num_directions, 8, figsize=(24, 14))
+                #
+                # s = [-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2]
+                # for i in range(len(imgs_adv)):
+                #     axes[i // 8, i % 8].imshow(to_image(imgs_inv[i]))
+                #     axes[i // 8, i % 8].set_title(f"{s[i % 8]} $\lambda_{i // 8}$ | L2: {losses[i].item():.3}")
+                #     axes[i // 8, i % 8].axis('off')
+                # fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_step{step}.png")
                 # fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_step{step}.png")
                 plt.close(fig)
 
