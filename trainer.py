@@ -71,7 +71,7 @@ class Trainer(object):
             nearest_sample = orig_dists.argmin()
 
         print("Nearest sample: ", nearest_sample)
-        z_inv = nn.Parameter(z_orig[nearest_sample], requires_grad=True)
+        z_inv = nn.Parameter(z_orig[nearest_sample][None], requires_grad=True)
         optimizer = torch.optim.Adam([z_inv], lr=0.003, betas=(0.9, 0.999))
 
         os.makedirs("inv_samples", exist_ok=True)
