@@ -71,6 +71,7 @@ class Trainer(object):
                     orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
 
                     feats = inception(orig_imgs)[0]
+                    print(feats.shape, target_feats.shape)
                     orig_dists[i * batch_size: (i+1) * batch_size] = \
                         ((target_feats - feats) ** 2).mean(-1).cpu()
                 nearest_sample = orig_dists.argmin().item()
