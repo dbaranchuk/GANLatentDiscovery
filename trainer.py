@@ -59,7 +59,8 @@ class Trainer(object):
         print('Find the nearest sample')
 
         for class_idx in range(0, 1000, 5):
-            target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
+            target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy")[0])[None].cuda()
+            print(type(target_feats), target_feats.shape)
             # class_idx = 725
             G.target_classes.data = torch.tensor(class_idx).cuda()
             with torch.no_grad():
