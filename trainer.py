@@ -55,11 +55,11 @@ class Trainer(object):
             target_feats = inception(target_img)
 
         G.cuda().eval()
-        z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
 
         print('Find the nearest sample')
         with torch.no_grad():
             num_samples = 1024
+            z_orig = make_noise(num_samples, G.dim_z).cuda()
             orig_dists = torch.zeros(num_samples)
             batch_size = num_samples // 8
             for i in range(8):
