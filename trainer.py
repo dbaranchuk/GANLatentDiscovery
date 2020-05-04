@@ -74,8 +74,8 @@ class Trainer(object):
 
         print("Nearest sample: ", nearest_sample)
         z_inv = nn.Parameter(z_orig[nearest_sample][None], requires_grad=True)
-        optimizer = torch.optim.Adam([z_inv], lr=0.01, amsgrad=True)
-        # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[1000], gamma=0.5)
+        optimizer = torch.optim.Adam([z_inv], lr=0.01)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[8000, 9000], gamma=0.5)
         os.makedirs("inv_samples", exist_ok=True)
         torch.save(z_orig, "inv_samples/orig_z.pt")
 
@@ -112,7 +112,7 @@ class Trainer(object):
             loss = ((target_feats - img_adv_feats) ** 2).mean()
             loss.backward()
             optimizer.step()
-            # scheduler.step()
+            scheduler.step()
 
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
