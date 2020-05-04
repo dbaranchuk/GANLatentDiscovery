@@ -76,7 +76,6 @@ def main():
         param.requires_grad = False
 
     for param in G.parameters():
-        print(param.requires_grad)
         param.requires_grad = False
 
     # training
