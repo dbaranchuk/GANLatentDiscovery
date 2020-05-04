@@ -78,11 +78,11 @@ class Trainer(object):
         #           f" | Min: {min(orig_dists).item():.3}",
         #           f" | Mean: {orig_dists.mean().item():.3}")
 
-        num_directions = 4
+        num_directions = 5
         target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:num_directions].reshape(-1,
                                                                                                                 2048).cuda()
-        z = torch.zeros(num_directions * 8, 120).cuda()
-        for sample_id in range(num_directions * 8):
+        z = torch.zeros(num_directions * 7, 120).cuda()
+        for sample_id in range(num_directions * 7):
             with torch.no_grad():
                 num_samples = 8192
                 num_batches = 64
@@ -138,14 +138,14 @@ class Trainer(object):
                 # ax.axis("off")
                 # fig_to_image(fig).save(f"inv_samples/gaussian_mean_{class_idx}_step{step}.png")
 
-                fig, axes = plt.subplots(num_directions, 8, figsize=(24, 14))
+                fig, axes = plt.subplots(num_directions, 7, figsize=(24, 16))
 
-                s = [-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2]
+                s = [-1.5, -1, -0.5, 0, 0.5, 1, 1.5]
                 for i in range(len(imgs_inv)):
-                    axes[i // 8, i % 8].imshow(to_image(imgs_inv[i]))
-                    axes[i // 8, i % 8].set_title(f"{s[i % 8]} $\lambda_{i // 8}$ | L2: {losses[i].item():.3}")
-                    axes[i // 8, i % 8].axis('off')
-                fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_step{step}.png")
+                    axes[i // 7, i % 7].imshow(to_image(imgs_inv[i]))
+                    axes[i // 7, i % 7].set_title(f"{s[i % 7]} $\lambda_{i // 7}$ | L2: {losses[i].item():.3}")
+                    axes[i // 7, i % 7].axis('off')
+                fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_4_step{step}.png")
                 plt.close(fig)
 
     # def train(self, G, inception):
