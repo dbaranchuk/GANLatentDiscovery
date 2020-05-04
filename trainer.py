@@ -69,6 +69,7 @@ class Trainer(object):
                 feats = inception(orig_imgs)
                 orig_dists[i * batch_size: (i+1) * batch_size] = (target_feats - feats).norm(2, dim=-1)
             nearest_sample = orig_dists.argmin().item()
+            torch.cuda.empty_cache()
 
         print("Nearest sample: ", nearest_sample)
         z_inv = nn.Parameter(z_orig[nearest_sample][None], requires_grad=True)
@@ -80,7 +81,7 @@ class Trainer(object):
 
         for step in range(0, self.p.n_steps, 1):
             if step == 10000:
-                optimizer = torch.optim.LBFGS([z_inv], lr=1, max_iter=20, max_eval=None, tolerance_grad=1e-07,
+                optimizer = torch.optim.LBFGS([z_inv], lr=0.1, max_iter=20, max_eval=None, tolerance_grad=1e-07,
                                               tolerance_change=1e-09, history_size=100)
 
             G.zero_grad()
