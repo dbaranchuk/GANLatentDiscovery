@@ -80,8 +80,8 @@ class Trainer(object):
         z = torch.zeros(num_directions * 8, 120).cuda()
         for sample_id in range(num_directions * 8):
             with torch.no_grad():
-                num_samples = 512 #8192
-                num_batches = 4 #64
+                num_samples = 8192
+                num_batches = 64
                 z_orig = make_noise(num_samples, G.dim_z).cuda()
                 orig_dists = torch.zeros(num_samples)
                 batch_size = num_samples // num_batches
@@ -93,7 +93,6 @@ class Trainer(object):
                     orig_dists[i * batch_size: (i + 1) * batch_size] = \
                         ((target_feats[sample_id][None] - feats) ** 2).mean(-1).cpu()
                 nearest_sample = orig_dists.argmin().item()
-                print(min(orig_dists).item())
                 print(sample_id, nearest_sample, orig_dists[nearest_sample].item())
             z[sample_id] = z_orig[nearest_sample]
             torch.cuda.empty_cache()
