@@ -58,8 +58,8 @@ class Trainer(object):
 
         print('Find the nearest sample')
         with torch.no_grad():
-            num_samples = 4096
-            num_batches = 32
+            num_samples = 8192
+            num_batches = 64
             z_orig = make_noise(num_samples, G.dim_z).cuda()
             orig_dists = torch.zeros(num_samples)
             batch_size = num_samples // num_batches
@@ -74,7 +74,7 @@ class Trainer(object):
 
         print("Nearest sample: ", nearest_sample)
         z_inv = nn.Parameter(z_orig[nearest_sample][None], requires_grad=True)
-        optimizer = torch.optim.Adam([z_inv], lr=0.003, betas=(0.9, 0.999))
+        optimizer = torch.optim.Adam([z_inv], lr=0.01, betas=(0.9, 0.999))
 
         os.makedirs("inv_samples", exist_ok=True)
         torch.save(z_orig, "inv_samples/orig_z.pt")
