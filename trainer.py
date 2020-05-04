@@ -50,7 +50,7 @@ class Trainer(object):
             # Normalize(mean=[0.485, 0.456, 0.406],
             #           std=[0.229, 0.224, 0.225])
         ])
-        target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/3.png")).cuda()[None]
+        target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/0.png")).cuda()[None]
         with torch.no_grad():
             target_feats = inception(2*target_img - 1)
 
@@ -81,37 +81,37 @@ class Trainer(object):
 
 
         for step in range(0, self.p.n_steps, 1):
-            if step == 10000:
-                optimizer = torch.optim.LBFGS([z_inv], lr=0.8, max_iter=100, max_eval=None, tolerance_grad=1e-07,
-                                              tolerance_change=1e-09, history_size=200)
+            # if step == 10000:
+            #     optimizer = torch.optim.LBFGS([z_inv], lr=0.8, max_iter=100, max_eval=None, tolerance_grad=1e-07,
+            #                                   tolerance_change=1e-09, history_size=200)
 
             G.zero_grad()
-
-            if isinstance(optimizer, torch.optim.LBFGS):
-                def closure():
-                    optimizer.zero_grad()
-                    imgs_inv = G(z_inv)
-                    imgs_inv = F.interpolate(imgs_inv, size=(299, 299),
-                                             mode='bilinear', align_corners=False)
-                    inv_feats = inception(imgs_inv)
-                    loss = ((target_feats - inv_feats) ** 2).mean()
-                    loss.backward()
-                    return loss
-                optimizer.step(closure)
-
-            else:
-                optimizer.zero_grad()
-                imgs_inv = G(z_inv)
-                # imgs_adv = ((imgs_inv + 1.) / 2.).clamp(0, 1)
-                imgs_adv = F.interpolate(imgs_inv, size=(299, 299),
-                                         mode='bilinear', align_corners=False)
-                # mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
-                # std = torch.tensor([0.229, 0.224, 0.225]).cuda()
-                # imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
-                img_adv_feats = inception(imgs_adv)
-                loss = ((target_feats - img_adv_feats) ** 2).mean()
-                loss.backward()
-                optimizer.step()
+            #
+            # if isinstance(optimizer, torch.optim.LBFGS):
+            #     def closure():
+            #         optimizer.zero_grad()
+            #         imgs_inv = G(z_inv)
+            #         imgs_inv = F.interpolate(imgs_inv, size=(299, 299),
+            #                                  mode='bilinear', align_corners=False)
+            #         inv_feats = inception(imgs_inv)
+            #         loss = ((target_feats - inv_feats) ** 2).mean()
+            #         loss.backward()
+            #         return loss
+            #     optimizer.step(closure)
+            #
+            # else:
+            optimizer.zero_grad()
+            imgs_inv = G(z_inv)
+            # imgs_adv = ((imgs_inv + 1.) / 2.).clamp(0, 1)
+            imgs_adv = F.interpolate(imgs_inv, size=(299, 299),
+                                     mode='bilinear', align_corners=False)
+            # mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
+            # std = torch.tensor([0.229, 0.224, 0.225]).cuda()
+            # imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
+            img_adv_feats = inception(imgs_adv)
+            loss = ((target_feats - img_adv_feats) ** 2).mean()
+            loss.backward()
+            optimizer.step()
 
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
