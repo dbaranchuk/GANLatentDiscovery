@@ -53,7 +53,7 @@ class Trainer(object):
         ])
         target_img = transform(Image.open("../datasets/imagenet_crop128/val/95/0.png")).cuda()[None]
         with torch.no_grad():
-            target_feats = inception(target_img)[0]
+            target_feats = inception(target_img)[0].view(-1, 2048)
 
         print('Find the nearest sample')
         # for class_idx in range(0, 1000, 5):
