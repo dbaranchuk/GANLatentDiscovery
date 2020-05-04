@@ -58,20 +58,24 @@ class Trainer(object):
         G.cuda().eval()
 
         print('Find the nearest sample')
-        with torch.no_grad():
-            num_samples = 8192
-            num_batches = 64
-            z_orig = make_noise(num_samples, G.dim_z).cuda()
-            orig_dists = torch.zeros(num_samples)
-            batch_size = num_samples // num_batches
-            for i in range(num_batches):
-                orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
-                orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
-                                     mode='bilinear', align_corners=False)
-                feats = inception(orig_imgs)
-                orig_dists[i * batch_size: (i+1) * batch_size] = ((target_feats - feats) ** 2).mean(-1).cpu()
-            nearest_sample = orig_dists.argmin().item()
-            torch.cuda.empty_cache()
+
+        for class_idx in range(0, 1000, 100):
+            G.target_classes.data = torch.tensor(class_idx).cuda()
+            with torch.no_grad():
+                num_samples = 8192
+                num_batches = 64
+                z_orig = make_noise(num_samples, G.dim_z).cuda()
+                orig_dists = torch.zeros(num_samples)
+                batch_size = num_samples // num_batches
+                for i in range(num_batches):
+                    orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
+                    orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
+                                         mode='bilinear', align_corners=False)
+                    feats = inception(orig_imgs)
+                    orig_dists[i * batch_size: (i+1) * batch_size] = ((target_feats - feats) ** 2).mean(-1).cpu()
+                print(class_idx, min(orig_dists))
+                nearest_sample = orig_dists.argmin().item()
+                torch.cuda.empty_cache()
 
         print("Nearest sample: ", nearest_sample)
         z_inv = nn.Parameter(z_orig[nearest_sample][None], requires_grad=True)
