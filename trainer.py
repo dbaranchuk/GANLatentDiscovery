@@ -70,22 +70,17 @@ class Trainer(object):
             optimizer.zero_grad()
 
             imgs_inv = G(z_inv)
-            imgs_adv = ((imgs_inv + 1.) / 2.).clamp(0, 1)
-            imgs_adv = F.interpolate(imgs_adv, size=(299, 299),
+            # imgs_adv = ((imgs_inv + 1.) / 2.).clamp(0, 1)
+            imgs_adv = F.interpolate(imgs_inv, size=(299, 299),
                                      mode='bilinear', align_corners=False)
-            mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
-            std = torch.tensor([0.229, 0.224, 0.225]).cuda()
-            imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
+            # mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
+            # std = torch.tensor([0.229, 0.224, 0.225]).cuda()
+            # imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
 
             img_adv_feats = inception(imgs_adv)
             loss = ((target_feats - img_adv_feats) ** 2).mean()
             loss.backward()
             optimizer.step()
-
-            # check_img = transform(to_image(imgs_inv)).cuda()[None]
-            # with torch.no_grad():
-            #     check_feats = inception(check_img)
-            #     check_loss = ((check_feats - img_adv_feats) ** 2).mean()
 
             with torch.no_grad():
                 target_feats = inception(target_img)
