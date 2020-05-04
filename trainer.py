@@ -53,14 +53,15 @@ class Trainer(object):
         # target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/0.png")).cuda()[None]
         # with torch.no_grad():
         #     target_feats = inception(2*target_img - 1)
-        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
         num_directions = 4
         # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:num_directions].reshape(-1, 2048).cuda()
 
         print('Find the nearest sample')
 
         # for class_idx in [415, 725, 950]:
-        G.target_classes.data = torch.tensor(725).cuda()
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
+        class_idx = 725
+        G.target_classes.data = torch.tensor(class_idx).cuda()
         with torch.no_grad():
             num_samples = 16384 #8192
             num_batches = 128
@@ -146,6 +147,8 @@ class Trainer(object):
                 ax.imshow(to_image(imgs_inv))
                 ax.set_title(f"Mean | L2: {loss.item():.3}")
                 ax.axis("off")
+                fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_{class_idx}_step{step}.png")
+
                 # fig, axes = plt.subplots(num_directions, 8, figsize=(24, 14))
                 #
                 # s = [-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2]
@@ -154,7 +157,6 @@ class Trainer(object):
                 #     axes[i // 8, i % 8].set_title(f"{s[i % 8]} $\lambda_{i // 8}$ | L2: {losses[i].item():.3}")
                 #     axes[i // 8, i % 8].axis('off')
                 # fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_step{step}.png")
-                # fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_step{step}.png")
                 plt.close(fig)
 
     # def train(self, G, inception):
