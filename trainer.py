@@ -58,8 +58,11 @@ class Trainer(object):
         G.cuda().eval()
 
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
+
+        # ((target_feats - img_adv_feats) ** 2).mean()
+
         z_inv = nn.Parameter(z_orig, requires_grad=True)
-        optimizer = torch.optim.Adam([z_inv], lr=0.001, betas=(0.9, 0.999))
+        optimizer = torch.optim.Adam([z_inv], lr=0.003, betas=(0.9, 0.999))
 
         os.makedirs("inv_samples", exist_ok=True)
         torch.save(z_orig, "inv_samples/orig_z.pt")
@@ -77,7 +80,7 @@ class Trainer(object):
             # std = torch.tensor([0.229, 0.224, 0.225]).cuda()
             # imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
 
-            img_adv_feats = inception(imgs_adv.clamp(-1, 1))
+            img_adv_feats = inception(imgs_adv)
             loss = ((target_feats - img_adv_feats) ** 2).mean()
             loss.backward()
             optimizer.step()
