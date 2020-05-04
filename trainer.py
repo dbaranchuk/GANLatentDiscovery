@@ -67,9 +67,7 @@ class Trainer(object):
                 orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
                                      mode='bilinear', align_corners=False)
                 feats = inception(orig_imgs)
-                print(feats.shape, target_feats.shape)
                 orig_dists[i * batch_size: (i+1) * batch_size] = (target_feats - feats).norm(2, dim=-1)
-            print(orig_dists)
             nearest_sample = orig_dists.argmin().item()
 
         print("Nearest sample: ", nearest_sample)
