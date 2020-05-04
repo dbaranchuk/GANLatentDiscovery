@@ -82,17 +82,15 @@ class Trainer(object):
             loss.backward()
             optimizer.step()
 
-            check_img = transform(to_image(imgs_inv)).cuda()[None]
-            with torch.no_grad():
-                check_feats = inception(check_img)
-                check_loss = ((check_feats - img_adv_feats) ** 2).mean()
+            # check_img = transform(to_image(imgs_inv)).cuda()[None]
+            # with torch.no_grad():
+            #     check_feats = inception(check_img)
+            #     check_loss = ((check_feats - img_adv_feats) ** 2).mean()
 
             with torch.no_grad():
                 target_feats = inception(target_img)
 
             if step % self.p.steps_per_log == 0:
-                print()
-                self.log(step, check_loss)
                 self.log(step, loss)
             if step % self.p.steps_per_save == 0:
                 # torch.save(z_inv.cpu().data, f"inv_samples/direction_0_1_2_inv_z_{step}.pt")

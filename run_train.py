@@ -70,7 +70,8 @@ def main():
     else:
         G = make_external(weights_path).eval()
 
-    inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
+    inception = inception_v3(num_classes=1000, aux_logits=False,
+                             pretrained=True, transform_input=False).cuda().eval()
     inception.fc = torch.nn.Identity()
     for param in inception.parameters():
         param.requires_grad = False
