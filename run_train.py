@@ -74,7 +74,7 @@ def main():
     # inception = inception_v3(num_classes=1000, aux_logits=False,
     #                          pretrained=True, transform_input=False).cuda().eval()
     inception = InceptionV3(resize_input=True, normalize_input=False,
-                            use_fid_inception=True)
+                            use_fid_inception=True).cuda().eval()
     # inception.fc = torch.nn.Identity()
     for param in inception.parameters():
         param.requires_grad = False
