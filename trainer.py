@@ -69,6 +69,10 @@ class Trainer(object):
 
 
         for step in range(0, self.p.n_steps, 1):
+            if step == 10000:
+                optimizer = torch.optim.LBFGS([z_inv], lr=1, max_iter=20, max_eval=None, tolerance_grad=1e-07,
+                                              tolerance_change=1e-09, history_size=100)
+
             G.zero_grad()
             optimizer.zero_grad()
 
