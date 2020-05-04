@@ -58,7 +58,7 @@ class Trainer(object):
 
         print('Find the nearest sample')
         with torch.no_grad():
-            num_samples = 1024
+            num_samples = 2048
             z_orig = make_noise(num_samples, G.dim_z).cuda()
             orig_dists = torch.zeros(num_samples)
             batch_size = num_samples // 8
@@ -67,7 +67,7 @@ class Trainer(object):
                 orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
                                      mode='bilinear', align_corners=False)
                 feats = inception(orig_imgs)
-                orig_dists[i * batch_size: (i+1) * batch_size] = (target_feats - feats).norm(2, dim=-1)
+                orig_dists[i * batch_size: (i+1) * batch_size] = (target_feats - feats).norm(2, dim=-1).cpu()
             nearest_sample = orig_dists.argmin().item()
             torch.cuda.empty_cache()
 
@@ -81,7 +81,7 @@ class Trainer(object):
 
         for step in range(0, self.p.n_steps, 1):
             if step == 10000:
-                optimizer = torch.optim.LBFGS([z_inv], lr=0.1, max_iter=20, max_eval=None, tolerance_grad=1e-07,
+                optimizer = torch.optim.LBFGS([z_inv], lr=0.001, max_iter=20, max_eval=None, tolerance_grad=1e-07,
                                               tolerance_change=1e-09, history_size=100)
 
             G.zero_grad()
