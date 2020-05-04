@@ -68,7 +68,7 @@ class Trainer(object):
                                      mode='bilinear', align_corners=False)
                 feats = inception(orig_imgs)
                 orig_dists[i * batch_size: (i+1) * batch_size] = (target_feats - feats).norm(2).mean(-1)
-            nearest_sample = orig_dists.argmin()
+            nearest_sample = orig_dists.argmin().item()
 
         print("Nearest sample: ", nearest_sample)
         z_inv = nn.Parameter(z_orig[nearest_sample][None], requires_grad=True)
