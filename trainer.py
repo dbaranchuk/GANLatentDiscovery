@@ -80,8 +80,8 @@ class Trainer(object):
         z = torch.zeros(num_directions * 8, 120).cuda()
         for sample_id in range(num_directions * 8):
             with torch.no_grad():
-                num_samples = 630 #8192
-                num_batches = 5  #64
+                num_samples = 8192
+                num_batches = 64
                 z_orig = make_noise(num_samples, G.dim_z).cuda()
                 orig_dists = torch.zeros(num_samples)
                 batch_size = num_samples // num_batches
@@ -145,9 +145,11 @@ class Trainer(object):
                 # ax = fig.add_subplot(1, 1, 1)
                 # ax.imshow(to_image(imgs_inv))
                 fig, axes = plt.subplots(num_directions, 8, figsize=(24, 14))
+
+                s = [-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2]
                 for i in range(len(imgs_adv)):
                     axes[i // 8, i % 8].imshow(to_image(imgs_inv[i]))
-                    axes[i // 8, i % 8].set_title(f"D: {i // 8} | L2: {losses[i].item():.3}")
+                    axes[i // 8, i % 8].set_title(f"D: {s[i % 8]} $\lambda_{i // 8}$ | L2: {losses[i].item():.3}")
                     axes[i // 8, i % 8].axis('off')
                 fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_step{step}.png")
                 # fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_step{step}.png")
