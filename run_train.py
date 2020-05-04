@@ -75,6 +75,10 @@ def main():
     for param in inception.parameters():
         param.requires_grad = False
 
+    for param in G.parameters():
+        print(param.requires_grad)
+        param.requires_grad = False
+
     # training
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
 
