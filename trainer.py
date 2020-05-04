@@ -143,7 +143,7 @@ class Trainer(object):
                 # fig = plt.Figure(figsize=(8, 6))
                 # ax = fig.add_subplot(1, 1, 1)
                 # ax.imshow(to_image(imgs_inv))
-                fig, axes = plt.subplots(num_directions, 8, figsize=(24, 16))
+                fig, axes = plt.subplots(num_directions, 8, figsize=(24, 14))
                 for i in range(len(imgs_adv)):
                     axes[i // 8, i % 8].imshow(to_image(imgs_inv[i]))
                     axes[i // 8, i % 8].set_title(f"D: {i // 8} | L2: {loss[i]:.3}")
