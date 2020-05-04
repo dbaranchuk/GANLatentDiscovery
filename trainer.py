@@ -59,10 +59,11 @@ class Trainer(object):
         print('Find the nearest sample')
         with torch.no_grad():
             num_samples = 4096
+            num_batches = 32
             z_orig = make_noise(num_samples, G.dim_z).cuda()
             orig_dists = torch.zeros(num_samples)
-            batch_size = num_samples // 32
-            for i in range(32):
+            batch_size = num_samples // num_batches
+            for i in range(num_batches):
                 orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
                 orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
                                      mode='bilinear', align_corners=False)
@@ -81,22 +82,25 @@ class Trainer(object):
 
         for step in range(0, self.p.n_steps, 1):
             if step == 10000:
-                optimizer = torch.optim.LBFGS([z_inv], lr=0.001, max_iter=20, max_eval=None, tolerance_grad=1e-07,
+                optimizer = torch.optim.LBFGS([z_inv], lr=0.1, max_iter=20, max_eval=None, tolerance_grad=1e-07,
                                               tolerance_change=1e-09, history_size=100)
 
             G.zero_grad()
-            optimizer.zero_grad()
 
             if isinstance(optimizer, torch.optim.LBFGS):
                 def closure():
+                    optimizer.zero_grad()
                     imgs_inv = G(z_inv)
                     imgs_inv = F.interpolate(imgs_inv, size=(299, 299),
                                              mode='bilinear', align_corners=False)
                     inv_feats = inception(imgs_inv)
-                    return ((target_feats - inv_feats) ** 2).mean()
+                    loss = ((target_feats - inv_feats) ** 2).mean()
+                    loss.backward()
+                    return loss
                 optimizer.step(closure)
 
             else:
+                optimizer.zero_grad()
                 imgs_inv = G(z_inv)
                 # imgs_adv = ((imgs_inv + 1.) / 2.).clamp(0, 1)
                 imgs_adv = F.interpolate(imgs_inv, size=(299, 299),
