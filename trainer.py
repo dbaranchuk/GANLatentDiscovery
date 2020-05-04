@@ -44,15 +44,16 @@ class Trainer(object):
             print('Step {} loss: {:.3}'.format(step, loss.item()))
 
     def train(self, G, inception):
-        transform = Compose([
-            Resize(299),
-            ToTensor(),
-            # Normalize(mean=[0.485, 0.456, 0.406],
-            #           std=[0.229, 0.224, 0.225])
-        ])
-        target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/0.png")).cuda()[None]
-        with torch.no_grad():
-            target_feats = inception(2*target_img - 1)
+        # transform = Compose([
+        #     Resize(299),
+        #     ToTensor(),
+        #     # Normalize(mean=[0.485, 0.456, 0.406],
+        #     #           std=[0.229, 0.224, 0.225])
+        # ])
+        # target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/0.png")).cuda()[None]
+        # with torch.no_grad():
+        #     target_feats = inception(2*target_img - 1)
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
 
         G.cuda().eval()
 
@@ -75,7 +76,6 @@ class Trainer(object):
         print("Nearest sample: ", nearest_sample)
         z_inv = nn.Parameter(z_orig[nearest_sample][None], requires_grad=True)
         optimizer = torch.optim.Adam([z_inv], lr=0.01)
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[8000, 9000], gamma=0.5)
         os.makedirs("inv_samples", exist_ok=True)
         torch.save(z_orig, "inv_samples/orig_z.pt")
 
@@ -112,7 +112,6 @@ class Trainer(object):
             loss = ((target_feats - img_adv_feats) ** 2).mean()
             loss.backward()
             optimizer.step()
-            scheduler.step()
 
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
@@ -121,7 +120,7 @@ class Trainer(object):
                 fig = plt.Figure(figsize=(8, 6))
                 ax = fig.add_subplot(1, 1, 1)
                 ax.imshow(to_image(imgs_inv))
-                fig_to_image(fig).save(f"inv_samples/true_inversion_step{step}.png")
+                fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_step{step}.png")
                 plt.close(fig)
 
     # def train(self, G, inception):
