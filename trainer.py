@@ -54,7 +54,7 @@ class Trainer(object):
         # with torch.no_grad():
         #     target_feats = inception(2*target_img - 1)
         # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
-        num_directions = 5
+        num_directions = 4
         target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:num_directions].reshape(-1, 2048).cuda()
 
         print('Find the nearest sample')
@@ -80,8 +80,8 @@ class Trainer(object):
         z = torch.zeros(num_directions * 8, 120).cuda()
         for sample_id in range(num_directions * 8):
             with torch.no_grad():
-                num_samples = 256 #8192
-                num_batches = 2 #64
+                num_samples = 8192
+                num_batches = 64
                 z_orig = make_noise(num_samples, G.dim_z).cuda()
                 orig_dists = torch.zeros(num_samples)
                 batch_size = num_samples // num_batches
@@ -147,7 +147,7 @@ class Trainer(object):
                 for i in range(len(imgs_adv)):
                     axes[i // 8, i % 8].imshow(to_image(imgs_inv[i]))
                     axes[i // 8, i % 8].set_title(f"Direction {i // 8}")
-                fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_4_step{step}.png")
+                fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_step{step}.png")
                 # fig_to_image(fig).save(f"inv_samples/gaussian_mean_inversion_step{step}.png")
                 plt.close(fig)
 
