@@ -76,7 +76,7 @@ class Trainer(object):
         #         torch.cuda.empty_cache()
 
         G.target_classes.data = torch.tensor(405).cuda()
-        z = torch.zeros(40, 2048).cuda()
+        z = torch.zeros(40, 120).cuda()
         for sample_id in range(40):
             with torch.no_grad():
                 num_samples = 128 #8192
