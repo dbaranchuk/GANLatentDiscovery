@@ -53,9 +53,9 @@ class Trainer(object):
         # target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/0.png")).cuda()[None]
         # with torch.no_grad():
         #     target_feats = inception(2*target_img - 1)
-        # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
+        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
         num_directions = 4
-        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:num_directions].reshape(-1, 2048).cuda()
+        # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:num_directions].reshape(-1, 2048).cuda()
 
         print('Find the nearest sample')
 
