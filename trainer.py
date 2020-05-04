@@ -59,7 +59,7 @@ class Trainer(object):
 
         print('Find the nearest sample')
 
-        for class_idx in [185, 415, 725, 950]:
+        for class_idx in [415, 725, 950]:
             G.target_classes.data = torch.tensor(class_idx).cuda()
             with torch.no_grad():
                 num_samples = 8192
@@ -73,7 +73,7 @@ class Trainer(object):
                                          mode='bilinear', align_corners=False)
                     feats = inception(orig_imgs)
                     orig_dists[i * batch_size: (i+1) * batch_size] = ((target_feats - feats) ** 2).mean(-1).cpu()
-                print(class_idx, min(orig_dists))
+                print(class_idx, min(orig_dists).item(), orig_dists.mean().item())
                 torch.cuda.empty_cache()
 
         G.target_classes.data = torch.tensor(405).cuda()
