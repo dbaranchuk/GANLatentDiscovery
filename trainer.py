@@ -93,7 +93,7 @@ class Trainer(object):
                     orig_imgs = G(z_orig[i * batch_size: (i + 1) * batch_size])
                     orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
                                               mode='bilinear', align_corners=False)
-                    feats = inception(orig_imgs)
+                    feats = inception(orig_imgs)[0].view(-1, 2048)
                     orig_dists[i * batch_size: (i + 1) * batch_size] = \
                         ((target_feats[sample_id][None] - feats) ** 2).mean(-1).cpu()
                 nearest_sample = orig_dists.argmin().item()
