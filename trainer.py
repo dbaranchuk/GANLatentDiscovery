@@ -68,6 +68,7 @@ class Trainer(object):
                                      mode='bilinear', align_corners=False)
                 feats = inception(orig_imgs)
                 orig_dists[i * batch_size: (i+1) * batch_size] = ((target_feats - feats) ** 2).mean(-1).cpu()
+            print(orig_dists)
             nearest_sample = orig_dists.argmin().item()
             torch.cuda.empty_cache()
 
