@@ -44,60 +44,61 @@ class Trainer(object):
             print('Step {} loss: {:.3}'.format(step, loss.item()))
 
     def train(self, G, inception):
-        # transform = Compose([
-        #     Resize(299),
-        #     ToTensor(),
-        #     # Normalize(mean=[0.485, 0.456, 0.406],
-        #     #           std=[0.229, 0.224, 0.225])
-        # ])
-        # target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/0.png")).cuda()[None]
-        # with torch.no_grad():
-        #     target_feats = inception(2*target_img - 1)
+        transform = Compose([
+            Resize(299),
+            ToTensor(),
+            lambda x: 2 * x - 1,
+            # Normalize(mean=[0.485, 0.456, 0.406],
+            #           std=[0.229, 0.224, 0.225])
+        ])
+        target_img = transform(Image.open("../datasets/imagenet_crop128/val/95/0.png")).cuda()[None]
+        with torch.no_grad():
+            target_feats = inception(target_img)[0]
 
         print('Find the nearest sample')
         # for class_idx in range(0, 1000, 5):
         # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
         class_idx = 95
         G.target_classes.data = torch.tensor(class_idx).cuda()
-        # with torch.no_grad():
-        #     num_samples = 16384 #8192
-        #     num_batches = 128
-        #     z_orig = make_noise(num_samples, G.dim_z).cuda()
-        #     orig_dists = torch.zeros(num_samples)
-        #     batch_size = num_samples // num_batches
-        #     for i in range(num_batches):
-        #         orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
-        #
-        #         feats = inception(orig_imgs)[0].view(-1, 2048)
-        #         orig_dists[i * batch_size: (i+1) * batch_size] = \
-        #             ((target_feats - feats) ** 2).mean(-1).cpu()
-        #     nearest_sample = orig_dists.argmin().item()
-        #     print(nearest_sample, min(orig_dists), orig_dists[nearest_sample])
-        #     z = z_orig[nearest_sample][None]
-        #     print("Class idx ", class_idx,
-        #           f" | Min: {min(orig_dists).item():.3}",
-        #           f" | Mean: {orig_dists.mean().item():.3}")
+        with torch.no_grad():
+            num_samples = 16384 #8192
+            num_batches = 128
+            z_orig = make_noise(num_samples, G.dim_z).cuda()
+            orig_dists = torch.zeros(num_samples)
+            batch_size = num_samples // num_batches
+            for i in range(num_batches):
+                orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
 
-        num_directions = 5
-        target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:num_directions].reshape(-1,
-                                                                                                                2048).cuda()
-        z = torch.zeros(num_directions * 7, 120).cuda()
-        for sample_id in range(num_directions * 7):
-            with torch.no_grad():
-                num_samples = 8192
-                num_batches = 64
-                z_orig = make_noise(num_samples, G.dim_z).cuda()
-                orig_dists = torch.zeros(num_samples)
-                batch_size = num_samples // num_batches
-                for i in range(num_batches):
-                    orig_imgs = G(z_orig[i * batch_size: (i + 1) * batch_size])
-                    feats = inception(orig_imgs)[0].view(-1, 2048)
-                    orig_dists[i * batch_size: (i + 1) * batch_size] = \
-                        ((target_feats[sample_id][None] - feats) ** 2).mean(-1).cpu()
-                nearest_sample = orig_dists.argmin().item()
-                print(sample_id, nearest_sample, orig_dists[nearest_sample].item())
-            z[sample_id] = z_orig[nearest_sample]
-            torch.cuda.empty_cache()
+                feats = inception(orig_imgs)[0].view(-1, 2048)
+                orig_dists[i * batch_size: (i+1) * batch_size] = \
+                    ((target_feats - feats) ** 2).mean(-1).cpu()
+            nearest_sample = orig_dists.argmin().item()
+            print(nearest_sample, min(orig_dists), orig_dists[nearest_sample])
+            z = z_orig[nearest_sample][None]
+            print("Class idx ", class_idx,
+                  f" | Min: {min(orig_dists).item():.3}",
+                  f" | Mean: {orig_dists.mean().item():.3}")
+
+        # num_directions = 5
+        # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:num_directions].reshape(-1,
+        #                                                                                                         2048).cuda()
+        # z = torch.zeros(num_directions * 7, 120).cuda()
+        # for sample_id in range(num_directions * 7):
+        #     with torch.no_grad():
+        #         num_samples = 8192
+        #         num_batches = 64
+        #         z_orig = make_noise(num_samples, G.dim_z).cuda()
+        #         orig_dists = torch.zeros(num_samples)
+        #         batch_size = num_samples // num_batches
+        #         for i in range(num_batches):
+        #             orig_imgs = G(z_orig[i * batch_size: (i + 1) * batch_size])
+        #             feats = inception(orig_imgs)[0].view(-1, 2048)
+        #             orig_dists[i * batch_size: (i + 1) * batch_size] = \
+        #                 ((target_feats[sample_id][None] - feats) ** 2).mean(-1).cpu()
+        #         nearest_sample = orig_dists.argmin().item()
+        #         print(sample_id, nearest_sample, orig_dists[nearest_sample].item())
+        #     z[sample_id] = z_orig[nearest_sample]
+        #     torch.cuda.empty_cache()
 
         z_inv = nn.Parameter(z, requires_grad=True)
         optimizer = torch.optim.Adam([z_inv], lr=0.01)
@@ -131,21 +132,21 @@ class Trainer(object):
             if step % self.p.steps_per_save == 0:
                 with torch.no_grad():
                     losses = ((target_feats - img_adv_feats) ** 2).mean(-1)
-                # fig = plt.Figure(figsize=(8, 6))
-                # ax = fig.add_subplot(1, 1, 1)
-                # ax.imshow(to_image(imgs_inv))
-                # ax.set_title(f"Mean | L2: {loss.item():.3}")
-                # ax.axis("off")
-                # fig_to_image(fig).save(f"inv_samples/gaussian_mean_{class_idx}_step{step}.png")
+                fig = plt.Figure(figsize=(8, 6))
+                ax = fig.add_subplot(1, 1, 1)
+                ax.imshow(to_image(imgs_inv))
+                ax.set_title(f"Inversion | L2: {loss.item():.3}")
+                ax.axis("off")
+                fig_to_image(fig).save(f"inv_samples/inversion_{class_idx}_step{step}.png")
 
-                fig, axes = plt.subplots(num_directions, 7, figsize=(24, 16))
-
-                s = [-1.5, -1, -0.5, 0, 0.5, 1, 1.5]
-                for i in range(len(imgs_inv)):
-                    axes[i // 7, i % 7].imshow(to_image(imgs_inv[i]))
-                    axes[i // 7, i % 7].set_title(f"{s[i % 7]} $\lambda_{i // 7}$ | L2: {losses[i].item():.3}")
-                    axes[i // 7, i % 7].axis('off')
-                fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_4_step{step}.png")
+                # fig, axes = plt.subplots(num_directions, 7, figsize=(24, 16))
+                #
+                # s = [-1.5, -1, -0.5, 0, 0.5, 1, 1.5]
+                # for i in range(len(imgs_inv)):
+                #     axes[i // 7, i % 7].imshow(to_image(imgs_inv[i]))
+                #     axes[i // 7, i % 7].set_title(f"{s[i % 7]} $\lambda_{i // 7}$ | L2: {losses[i].item():.3}")
+                #     axes[i // 7, i % 7].axis('off')
+                # fig_to_image(fig).save(f"inv_samples/gaussian_directions_0_1_2_3_4_step{step}.png")
                 plt.close(fig)
 
     # def train(self, G, inception):
