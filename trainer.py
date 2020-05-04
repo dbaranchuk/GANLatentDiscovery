@@ -59,7 +59,7 @@ class Trainer(object):
         print('Find the nearest sample')
 
         for class_idx in range(0, 1000, 5):
-            target_feats = torch.tensor(np.load("stats/gan_imagenet_gaussian_mean.npy"))[None].cuda()
+            target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
             # class_idx = 725
             G.target_classes.data = torch.tensor(class_idx).cuda()
             with torch.no_grad():
@@ -70,15 +70,15 @@ class Trainer(object):
                 batch_size = num_samples // num_batches
                 for i in range(num_batches):
                     orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
-                    orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
-                                         mode='bilinear', align_corners=False)
+
                     feats = inception(orig_imgs.clamp(-1, 1))
-                    orig_dists[i * batch_size: (i+1) * batch_size] = ((target_feats - feats) ** 2).mean(-1).cpu()
+                    orig_dists[i * batch_size: (i+1) * batch_size] = \
+                        ((target_feats - feats) ** 2).mean(-1).cpu()
                 nearest_sample = orig_dists.argmin().item()
                 z = z_orig[nearest_sample][None]
-                print("Nearest sample: ", nearest_sample,
-                      "Min: ", min(orig_dists).item(),
-                      "Mean: ", orig_dists.mean().item())
+                print("Class idx ", class_idx,
+                      f" | Min: {min(orig_dists).item():.3}",
+                      f" | Mean: {orig_dists.mean().item():.3}")
 
         # G.target_classes.data = torch.tensor(725).cuda()
         # z = torch.zeros(num_directions * 8, 120).cuda()
@@ -109,8 +109,6 @@ class Trainer(object):
             # if step == 10000:
             #     optimizer = torch.optim.LBFGS([z_inv], lr=0.8, max_iter=100, max_eval=None, tolerance_grad=1e-07,
             #                                   tolerance_change=1e-09, history_size=200)
-
-            G.zero_grad()
             #
             # if isinstance(optimizer, torch.optim.LBFGS):
             #     def closure():
@@ -123,17 +121,9 @@ class Trainer(object):
             #         loss.backward()
             #         return loss
             #     optimizer.step(closure)
-            #
-            # else:
             optimizer.zero_grad()
             imgs_inv = G(z_inv)
-            # imgs_adv = ((imgs_inv + 1.) / 2.).clamp(0, 1)
-            imgs_adv = F.interpolate(imgs_inv, size=(299, 299),
-                                     mode='bilinear', align_corners=False)
-            # mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
-            # std = torch.tensor([0.229, 0.224, 0.225]).cuda()
-            # imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
-            img_adv_feats = inception(imgs_adv.clamp(-1, 1))
+            img_adv_feats = inception(imgs_inv)
             loss = ((target_feats - img_adv_feats) ** 2).mean()
             loss.backward()
             optimizer.step()
