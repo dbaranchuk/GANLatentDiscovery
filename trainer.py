@@ -57,10 +57,8 @@ class Trainer(object):
         # target_feats = torch.tensor(np.load("stats/imagenet_gaussian_directions.npy"))[:num_directions].reshape(-1, 2048).cuda()
 
         print('Find the nearest sample')
-
         for class_idx in range(0, 1000, 5):
-            target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy")[0])[None].cuda()
-            print(type(target_feats), target_feats.shape)
+            target_feats = torch.tensor(np.load("stats/imagenet_gaussian_mean.npy"))[None].cuda()
             # class_idx = 725
             G.target_classes.data = torch.tensor(class_idx).cuda()
             with torch.no_grad():
@@ -72,7 +70,7 @@ class Trainer(object):
                 for i in range(num_batches):
                     orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
 
-                    feats = inception(orig_imgs.clamp(-1, 1))
+                    feats = inception(orig_imgs)[0]
                     orig_dists[i * batch_size: (i+1) * batch_size] = \
                         ((target_feats - feats) ** 2).mean(-1).cpu()
                 nearest_sample = orig_dists.argmin().item()
@@ -124,7 +122,7 @@ class Trainer(object):
             #     optimizer.step(closure)
             optimizer.zero_grad()
             imgs_inv = G(z_inv)
-            img_adv_feats = inception(imgs_inv)
+            img_adv_feats = inception(imgs_inv)[0]
             loss = ((target_feats - img_adv_feats) ** 2).mean()
             loss.backward()
             optimizer.step()
