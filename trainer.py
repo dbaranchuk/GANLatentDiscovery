@@ -58,10 +58,10 @@ class Trainer(object):
 
         print('Find the nearest sample')
         with torch.no_grad():
-            num_samples = 2048
+            num_samples = 4096
             z_orig = make_noise(num_samples, G.dim_z).cuda()
             orig_dists = torch.zeros(num_samples)
-            batch_size = num_samples // 8
+            batch_size = num_samples // 32
             for i in range(8):
                 orig_imgs = G(z_orig[i * batch_size: (i+1) * batch_size])
                 orig_imgs = F.interpolate(orig_imgs, size=(299, 299),
