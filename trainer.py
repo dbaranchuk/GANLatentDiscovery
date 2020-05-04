@@ -51,7 +51,8 @@ class Trainer(object):
                       std=[0.229, 0.224, 0.225])
         ])
         target_img = transform(Image.open("../datasets/imagenet_crop128/val/239/0.png")).cuda()[None]
-        target_feats = inception(target_img)
+        with torch.no_grad():
+            target_feats = inception(target_img)
         self.p.batch_size = 1
 
         G.cuda().eval()
