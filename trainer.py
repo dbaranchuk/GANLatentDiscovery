@@ -90,22 +90,22 @@ class Trainer(object):
             if step % self.p.steps_per_save == 0:
                 torch.save(z_adv.data, f"efros_samples/efros_z_{step}.pt")
 
-                fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 200))
-                for i in range(len(imgs_efros)):
-                    axes[i][0].imshow(to_image(orig_samples[i]))
-                    axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}")
+                with PdfPages(f"efros_samples/step{step}.pdf") as pdf:
+                    fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 200))
+                    for i in range(len(imgs_efros)):
+                        axes[i][0].imshow(to_image(orig_samples[i]))
+                        axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}")
 
-                    axes[i][1].imshow(to_image(imgs_efros[i]))
-                    axes[i][1].set_title(f"After Prob: {probs[i].item():.2}" )
+                        axes[i][1].imshow(to_image(imgs_efros[i]))
+                        axes[i][1].set_title(f"After Prob: {probs[i].item():.2}" )
 
-                    diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
-                    axes[i][2].imshow(diff_image)
-                    axes[i][2].set_title("Difference")
+                        diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
+                        axes[i][2].imshow(diff_image)
+                        axes[i][2].set_title("Difference")
 
                 # fig_to_image(fig).save(f"efros_samples/step{step}.png")
-                pp = PdfPages(f"efros_samples/step{step}.pdf")
-                pp.savefig(fig, bbox_inches='tight')
-                pp.close()
+                    pdf.savefig(fig, bbox_inches='tight')
+                    pdf.close()
                 # plt.close(fig)
 
 
