@@ -72,7 +72,8 @@ class Trainer(object):
             imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
 
             ####################
-            loss = model(imgs_adv).sigmoid().mean()
+            probs = model(imgs_adv).sigmoid()
+            loss = probs.mean()
             loss.backward()
             optimizer.step()
 
@@ -85,10 +86,10 @@ class Trainer(object):
                     fig, axes = plt.subplots(1, 3, figsize=(12, 6))
 
                     axes[0].imshow(to_image(orig_samples[i]))
-                    axes[0].set_title("Original")
+                    axes[0].set_title(f"Original Sample Prob: {probs[i].item():.2}")
 
                     axes[1].imshow(to_image(imgs_efros[i]))
-                    axes[1].set_title("Efros")
+                    axes[1].set_title(f"After Prob: {probs[i].item():.2}" )
 
                     diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
                     axes[2].imshow(diff_image)
