@@ -18,7 +18,7 @@ plt.rcParams['ps.fonttype'] = 42
 
 class Params(object):
     def __init__(self, **kwargs):
-        self.n_steps = 1001
+        self.n_steps = 301
         self.batch_size = 32
 
         self.z_norm_loss_low_bound = 1.1
@@ -26,7 +26,7 @@ class Params(object):
         self.z_std_weight = 200.0
 
         self.steps_per_log = 100
-        self.steps_per_save = 500
+        self.steps_per_save = 300
 
         for key, val in kwargs.items():
             if val is not None:
@@ -69,6 +69,7 @@ class Trainer(object):
         G.target_classes.data = torch.tensor(class_idx).cuda()
 
         for batch_id in range(2):
+            print(class_idx, batch_id)
             z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
             z_adv = nn.Parameter(z_orig, requires_grad=True)
             optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
@@ -95,7 +96,6 @@ class Trainer(object):
                 if step == 0:
                     zero_step_probs = probs.detach()
                 if step % self.p.steps_per_log == 0:
-                    print(class_idx, batch_id)
                     self.log(step, loss)
                 if step % self.p.steps_per_save == 0:
                     for i in range(self.p.batch_size):
