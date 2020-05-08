@@ -109,11 +109,10 @@ class Trainer(object):
                         axes[i][2].axis('off')
                         axes[i][2].grid()
 
-
-                    fig_to_image(fig).save(f"efros_samples/step{step}.png")
                     pdf.savefig(fig, bbox_inches='tight')
                     pdf.close()
-                    plt.close(fig)
+                    # fig_to_image(fig).save(f"efros_samples/step{step}.png")
+                    # plt.close(fig)
 
 
 
