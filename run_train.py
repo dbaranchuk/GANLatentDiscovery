@@ -85,7 +85,8 @@ def main():
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
 
     if args.mode == 'train':
-        trainer.train(G, model)
+        for class_idx in range(1000):
+            trainer.train(G, model, class_idx)
 
 
 if __name__ == '__main__':
