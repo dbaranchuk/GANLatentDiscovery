@@ -65,8 +65,8 @@ class Trainer(object):
             G.zero_grad()
             optimizer.zero_grad()
 
-            imgs_adv = G(z_adv)
-            imgs_adv = ((imgs_adv + 1.) / 2.).clamp(0, 1)
+            imgs_efros = G(z_adv)
+            imgs_adv = ((imgs_efros + 1.) / 2.).clamp(0, 1)
             imgs_adv = F.interpolate(imgs_adv, size=(224, 224),
                                      mode='bilinear', align_corners=False)
             mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
@@ -82,17 +82,17 @@ class Trainer(object):
                 self.log(step, loss)
             if step % self.p.steps_per_save == 0:
                 torch.save(z_adv.data, f"efros_samples/efros_z_{step}.pt")
-                for i in range(len(imgs_adv)):
+                for i in range(len(imgs_efros)):
 
                     fig, axes = plt.subplots(1, 3, figsize=(12, 6))
 
                     axes[0].imshow(to_image(orig_samples[i]))
                     axes[0].set_title("Original")
 
-                    axes[1].imshow(to_image(imgs_adv[i]))
+                    axes[1].imshow(to_image(imgs_efros[i]))
                     axes[1].set_title("Adversarial")
 
-                    diff_image = (imgs_adv[i] - orig_samples[i]).mean(0).cpu().detach()
+                    diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
                     axes[2].imshow(diff_image)
                     axes[2].set_title("Difference")
 
