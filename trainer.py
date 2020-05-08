@@ -95,18 +95,25 @@ class Trainer(object):
                     for i in range(len(imgs_efros)):
                         axes[i][0].imshow(to_image(orig_samples[i]))
                         axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}")
+                        axes[i][2].axis('off')
+                        axes[i][2].grid()
 
                         axes[i][1].imshow(to_image(imgs_efros[i]))
                         axes[i][1].set_title(f"After Prob: {probs[i].item():.2}" )
+                        axes[i][2].axis('off')
+                        axes[i][2].grid()
 
                         diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
                         axes[i][2].imshow(diff_image)
                         axes[i][2].set_title("Difference")
+                        axes[i][2].axis('off')
+                        axes[i][2].grid()
 
-                # fig_to_image(fig).save(f"efros_samples/step{step}.png")
+
+                    fig_to_image(fig).save(f"efros_samples/step{step}.png")
                     pdf.savefig(fig, bbox_inches='tight')
                     pdf.close()
-                # plt.close(fig)
+                    plt.close(fig)
 
 
 
