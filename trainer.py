@@ -19,10 +19,8 @@ class Params(object):
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.l2_loss_weight = 10.0
-
         self.steps_per_log = 100
-        self.steps_per_save = 2500
+        self.steps_per_save = 1000
 
         for key, val in kwargs.items():
             if val is not None:
