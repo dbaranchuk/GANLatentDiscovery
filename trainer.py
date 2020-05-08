@@ -11,7 +11,7 @@ from visualization import fig_to_image
 
 
 from matplotlib.backends.backend_pdf import PdfPages
-plt.style.use('seaborn')
+plt.style.use('seaborn-whitegrid')
 plt.rcParams['pdf.fonttype'] = 42
 plt.rcParams['ps.fonttype'] = 42
 
@@ -95,16 +95,19 @@ class Trainer(object):
                     for i in range(len(imgs_efros)):
                         axes[i][0].imshow(to_image(orig_samples[i]))
                         axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}", fontsize=12)
-                        axes[i][2].set_frame_on(False)
+                        axes[i][0].axis('off')
+                        axes[i][0].grid(False)
 
                         axes[i][1].imshow(to_image(imgs_efros[i]))
                         axes[i][1].set_title(f"After Prob: {probs[i].item():.2}", fontsize=12)
-                        axes[i][2].set_frame_on(False)
+                        axes[i][1].axis('off')
+                        axes[i][1].grid(False)
 
                         diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
                         axes[i][2].imshow(diff_image)
                         axes[i][2].set_title("Difference", fontsize=12)
-                        axes[i][2].set_frame_on(False)
+                        axes[i][2].axis('off')
+                        axes[i][2].grid(False)
 
                     pdf.savefig(fig, bbox_inches='tight')
                     # pdf.close()
