@@ -28,6 +28,7 @@ def main():
         parser.add_argument('--{}'.format(key), type=type(val), default=None)
 
     parser.add_argument('--args', type=str, default=None, help='json with all arguments')
+    parser.add_argument('--out', type=str, required=True)
     parser.add_argument('--gan_type', type=str, choices=WEIGHTS.keys())
     parser.add_argument('--gan_weights', type=str, default=None)
     parser.add_argument('--target_class', type=int, default=239)
