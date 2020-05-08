@@ -102,11 +102,11 @@ class Trainer(object):
                     axes[i][2].imshow(diff_image)
                     axes[i][2].set_title("Difference")
 
-                fig_to_image(fig).save(f"efros_samples/step{step}.png")
+                # fig_to_image(fig).save(f"efros_samples/step{step}.png")
                 pp = PdfPages(f"efros_samples/step{step}.pdf")
                 pp.savefig(bbox_inches='tight')
                 pp.close()
-                plt.close(fig)
+                # plt.close(fig)
 
 
 
