@@ -11,8 +11,8 @@ matplotlib.use("Agg")
 import numpy as np
 from models.gan_load import make_big_gan, make_proggan, make_external
 from trainer import Trainer, Params
-from inception import InceptionV3
-from torchvision.models import inception_v3
+from networks.resnet import resnet50
+
 
 WEIGHTS = {
     'BigGAN': 'models/pretrained/BigGAN/138k/G_ema.pth',
@@ -70,14 +70,22 @@ def main():
     else:
         G = make_external(weights_path).eval()
 
-    inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
-    inception.fc = torch.nn.Identity()
+    model = resnet50(num_classes=1)
+    state_dict = torch.load('weights/blur_jpg_prob0.1.pth', map_location='cpu')
+    model.load_state_dict(state_dict['model'])
+    model.cuda().eval()
+
+    for param in model.parameters():
+        param.requires_grad = False
+
+    for param in G.parameters():
+        param.requires_grad = False
 
     # training
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
 
     if args.mode == 'train':
-        trainer.train(G, inception)
+        trainer.train(G, model)
 
 
 if __name__ == '__main__':
