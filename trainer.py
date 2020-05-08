@@ -84,7 +84,7 @@ class Trainer(object):
             if step % self.p.steps_per_save == 0:
                 torch.save(z_adv.data, f"efros_samples/efros_z_{step}.pt")
 
-                fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 50))
+                fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 100))
                 for i in range(len(imgs_efros)):
                     axes[i][0].imshow(to_image(orig_samples[i]))
                     axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}")
