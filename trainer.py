@@ -74,7 +74,7 @@ class Trainer(object):
             imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
 
             ####################
-            loss = model(imgs_adv).sigmoid().log().mean()
+            loss = model(imgs_adv).sigmoid().mean()
             loss.backward()
             optimizer.step()
 
