@@ -104,7 +104,7 @@ class Trainer(object):
 
                 # fig_to_image(fig).save(f"efros_samples/step{step}.png")
                 pp = PdfPages(f"efros_samples/step{step}.pdf")
-                pp.savefig(bbox_inches='tight')
+                pp.savefig(fig, bbox_inches='tight')
                 pp.close()
                 # plt.close(fig)
 
