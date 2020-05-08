@@ -64,7 +64,7 @@ def main():
         weights_path = WEIGHTS[args.gan_type]
 
     if args.gan_type == 'BigGAN':
-        G = make_big_gan(weights_path, args.target_class).eval()
+        G = make_big_gan(weights_path, args.target_class).eval().cuda()
     elif args.gan_type == 'ProgGAN':
         G = make_proggan(weights_path).eval()
     else:
