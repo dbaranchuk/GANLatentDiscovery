@@ -77,6 +77,8 @@ class Trainer(object):
             loss.backward()
             optimizer.step()
 
+            if step == 0:
+                zero_step_probs = probs.detach()
             if step % self.p.steps_per_log == 0:
                 self.log(step, loss)
             if step % self.p.steps_per_save == 0:
@@ -86,7 +88,7 @@ class Trainer(object):
                     fig, axes = plt.subplots(1, 3, figsize=(12, 6))
 
                     axes[0].imshow(to_image(orig_samples[i]))
-                    axes[0].set_title(f"Original Sample Prob: {probs[i].item():.2}")
+                    axes[0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}")
 
                     axes[1].imshow(to_image(imgs_efros[i]))
                     axes[1].set_title(f"After Prob: {probs[i].item():.2}" )
