@@ -88,7 +88,7 @@ class Trainer(object):
                     axes[0].set_title("Original")
 
                     axes[1].imshow(to_image(imgs_efros[i]))
-                    axes[1].set_title("Adversarial")
+                    axes[1].set_title("Efros")
 
                     diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
                     axes[2].imshow(diff_image)
