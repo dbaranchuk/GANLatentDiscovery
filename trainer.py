@@ -10,6 +10,12 @@ from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Normal
 from visualization import fig_to_image
 
 
+from matplotlib.backends.backend_pdf import PdfPages
+plt.style.use('seaborn-whitegrid')
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
+
+
 class Params(object):
     def __init__(self, **kwargs):
         self.n_steps = int(1e+5) + 1
@@ -84,7 +90,7 @@ class Trainer(object):
             if step % self.p.steps_per_save == 0:
                 torch.save(z_adv.data, f"efros_samples/efros_z_{step}.pt")
 
-                fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 100))
+                fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 200))
                 for i in range(len(imgs_efros)):
                     axes[i][0].imshow(to_image(orig_samples[i]))
                     axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}")
@@ -97,6 +103,9 @@ class Trainer(object):
                     axes[i][2].set_title("Difference")
 
                 fig_to_image(fig).save(f"efros_samples/step{step}.png")
+                pp = PdfPages(f"efros_samples/step{step}.pdf")
+                pp.savefig(bbox_inches='tight')
+                pp.close()
                 plt.close(fig)
 
 
