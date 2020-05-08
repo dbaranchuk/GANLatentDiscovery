@@ -83,22 +83,21 @@ class Trainer(object):
                 self.log(step, loss)
             if step % self.p.steps_per_save == 0:
                 torch.save(z_adv.data, f"efros_samples/efros_z_{step}.pt")
+
+                fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 50))
                 for i in range(len(imgs_efros)):
+                    axes[i*3 + 0].imshow(to_image(orig_samples[i]))
+                    axes[i*3 + 0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}")
 
-                    fig, axes = plt.subplots(1, 3, figsize=(12, 6))
-
-                    axes[0].imshow(to_image(orig_samples[i]))
-                    axes[0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}")
-
-                    axes[1].imshow(to_image(imgs_efros[i]))
-                    axes[1].set_title(f"After Prob: {probs[i].item():.2}" )
+                    axes[i*3 + 1].imshow(to_image(imgs_efros[i]))
+                    axes[i*3 + 1].set_title(f"After Prob: {probs[i].item():.2}" )
 
                     diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
-                    axes[2].imshow(diff_image)
-                    axes[2].set_title("Difference")
+                    axes[i*3 + 2].imshow(diff_image)
+                    axes[i*3 + 2].set_title("Difference")
 
-                    fig_to_image(fig).save(f"efros_samples/{i}_step{step}.png")
-                    plt.close(fig)
+                fig_to_image(fig).save(f"efros_samples/step{step}.png")
+                plt.close(fig)
 
 
 
