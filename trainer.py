@@ -20,7 +20,7 @@ class Params(object):
         self.z_std_weight = 200.0
 
         self.steps_per_log = 100
-        self.steps_per_save = 1000
+        self.steps_per_save = 500
 
         for key, val in kwargs.items():
             if val is not None:
