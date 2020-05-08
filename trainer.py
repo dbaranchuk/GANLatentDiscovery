@@ -94,18 +94,18 @@ class Trainer(object):
                     fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 200))
                     for i in range(len(imgs_efros)):
                         axes[i][0].imshow(to_image(orig_samples[i]))
-                        axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}")
+                        axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}", fontsize=12)
                         axes[i][2].axis('off')
                         axes[i][2].grid()
 
                         axes[i][1].imshow(to_image(imgs_efros[i]))
-                        axes[i][1].set_title(f"After Prob: {probs[i].item():.2}" )
+                        axes[i][1].set_title(f"After Prob: {probs[i].item():.2}", fontsize=12)
                         axes[i][2].axis('off')
                         axes[i][2].grid()
 
                         diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
                         axes[i][2].imshow(diff_image)
-                        axes[i][2].set_title("Difference")
+                        axes[i][2].set_title("Difference", fontsize=12)
                         axes[i][2].axis('off')
                         axes[i][2].grid()
 
