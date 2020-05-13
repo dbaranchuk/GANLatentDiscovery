@@ -72,8 +72,9 @@ class Trainer(object):
 
             z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
             # Original samples
-            orig_samples = G(z_orig).detach()
-            imgs_efros = orig_samples.clone()
+            with torch.no_grad():
+                orig_samples = G(z_orig)
+                imgs_efros = orig_samples.clone()
             optimizer = torch.optim.Adam([imgs_efros], lr=0.003, betas=(0.9, 0.999))
 
             for step in range(0, self.p.n_steps, 1):
