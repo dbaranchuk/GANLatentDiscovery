@@ -42,8 +42,8 @@ class Trainer(object):
         os.makedirs(self.models_dir, exist_ok=True)
         os.makedirs(self.images_dir, exist_ok=True)
 
-    def log(self, step, loss):
-            print('Step {} Loss: {:.3} '.format(step, loss.item()))
+    def log(self, step, img_l2_loss, loss):
+            print(f'Step {step} pixel_loss: {img_l2_loss.item():.3} fake_score: {loss.item():.3}')
 
     def train(self, G, model, class_idx):
         # trans = transforms.Compose([
@@ -67,8 +67,8 @@ class Trainer(object):
         G.target_classes.data = torch.tensor(class_idx).cuda()
         print(class_idx)
 
-        z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
         # Original samples
+        z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
         with torch.no_grad():
             orig_imgs = G(z_orig)
 
@@ -86,14 +86,15 @@ class Trainer(object):
 
             ####################
             probs = model(imgs_adv).sigmoid()
-            loss = probs.mean() + self.p.l2_loss_weight * ((orig_imgs - imgs_efros) ** 2).mean()
+            pixel_loss = self.p.l2_loss_weight * ((orig_imgs - imgs_efros) ** 2).mean()
+            loss = probs.mean() + pixel_loss
             loss.backward()
             optimizer.step()
 
             if step == 0:
                 zero_step_probs = probs.detach()
             if step % self.p.steps_per_log == 0:
-                self.log(step, loss)
+                self.log(step, pixel_loss, loss)
             if step % self.p.steps_per_save == 0:
                 for i in range(self.p.batch_size):
                     img = to_image(imgs_efros[i])
