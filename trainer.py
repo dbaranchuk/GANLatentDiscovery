@@ -123,7 +123,7 @@ class Trainer(object):
                         axes[i][2].grid(False)
 
                     pdf.savefig(fig, bbox_inches='tight')
-                    # pdf.close()
+                    pdf.close()
                     # fig_to_image(fig).save(f"efros_samples/step{step}.png")
                     # plt.close(fig)
 
