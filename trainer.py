@@ -43,8 +43,8 @@ class Trainer(object):
         os.makedirs(self.models_dir, exist_ok=True)
         os.makedirs(self.images_dir, exist_ok=True)
 
-    def log(self, step, loss):
-            print('Step {} Loss: {:.3} '.format(step, loss.item()))
+    def log(self, step, img_l2_loss, loss):
+            print(f'Step {step} pixel_loss: {img_l2_loss.item():.3} fake_score: {loss.item():.3}')
 
     def train(self, G, model, class_idx):
         # trans = transforms.Compose([
@@ -88,6 +88,7 @@ class Trainer(object):
 
                 ####################
                 probs = model(imgs_adv).sigmoid()
+
                 loss = probs.mean()
                 loss.backward()
                 optimizer.step()
