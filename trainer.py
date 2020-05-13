@@ -72,7 +72,7 @@ class Trainer(object):
             print(class_idx, batch_id)
             z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
             z_adv = nn.Parameter(z_orig, requires_grad=True)
-            optimizer = torch.optim.Adam([z_adv], lr=0.001, betas=(0.9, 0.999))
+            optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
 
             # Original samples
             orig_samples = G(z_orig)
