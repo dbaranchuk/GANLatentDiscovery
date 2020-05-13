@@ -54,14 +54,14 @@ class Trainer(object):
         mean = torch.tensor([0.485, 0.456, 0.406]).cuda()[..., None, None]
         std = torch.tensor([0.229, 0.224, 0.225]).cuda()[..., None, None]
 
-        sample_dir = f'efros_dataset_200/val/{class_idx}'
-        os.makedirs("efros_dataset_200", exist_ok=True)
-        os.makedirs("efros_dataset_200/val", exist_ok=True)
+        sample_dir = f'efros_dataset_{self.p.n_steps-1}/val/{class_idx}'
+        os.makedirs(f"efros_dataset_{self.p.n_steps-1}", exist_ok=True)
+        os.makedirs(f"efros_dataset_{self.p.n_steps-1}/val", exist_ok=True)
         os.makedirs(sample_dir, exist_ok=True)
 
-        orig_sample_dir = f'orig_efros_dataset_200/val/{class_idx}'
-        os.makedirs("orig_efros_dataset_200", exist_ok=True)
-        os.makedirs("orig_efros_dataset_200/val", exist_ok=True)
+        orig_sample_dir = f'orig_efros_dataset_{self.p.n_steps-1}/val/{class_idx}'
+        os.makedirs(f"orig_efros_dataset_{self.p.n_steps-1}", exist_ok=True)
+        os.makedirs(f"orig_efros_dataset_{self.p.n_steps-1}/val", exist_ok=True)
         os.makedirs(orig_sample_dir, exist_ok=True)
 
         G.target_classes.data = torch.tensor(class_idx).cuda()
@@ -104,7 +104,7 @@ class Trainer(object):
                         orig_img = to_image(orig_samples[i])
                         orig_img.save(os.path.join(orig_sample_dir, f'{batch_id * 25 + i}.png'))
 
-                    with PdfPages(f"efros_samples/{class_idx}_{batch_id}_step{step}.pdf") as pdf:
+                    with PdfPages(f"efros_dataset_{self.p.n_steps-1}/{class_idx}_{batch_id}_step{step}.pdf") as pdf:
                         fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 200))
                         for i in range(len(imgs_efros)):
                             axes[i][0].imshow(to_image(orig_samples[i]))
