@@ -21,7 +21,7 @@ class Params(object):
         self.n_steps = 201
         self.batch_size = 32
 
-        self.l2_loss_weight = 10.0
+        self.l2_loss_weight = 100.0
 
         self.steps_per_log = 200
         self.steps_per_save = 200
