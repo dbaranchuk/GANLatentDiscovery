@@ -21,11 +21,10 @@ class Params(object):
         self.n_steps = 201
         self.batch_size = 32
 
-        self.z_mean_weight = 200.0
-        self.z_std_weight = 200.0
 
-        self.steps_per_log = 200
-        self.steps_per_save = 200
+        self.steps_per_log = 100
+        self.steps_per_save = 100
+        self.l2_loss_weight = 100
 
         for key, val in kwargs.items():
             if val is not None:
@@ -88,16 +87,16 @@ class Trainer(object):
 
                 ####################
                 probs = model(imgs_adv).sigmoid()
-
-                loss = probs.mean()
+                pixel_loss = self.p.l2_loss_weight * ((orig_samples - imgs_efros) ** 2).mean()
+                loss = probs.mean() + pixel_loss
                 loss.backward()
                 optimizer.step()
 
                 if step == 0:
                     zero_step_probs = probs.detach()
                 if step % self.p.steps_per_log == 0:
-                    self.log(step, loss)
-                if step % self.p.steps_per_save == 0:
+                    self.log(step, pixel_loss, loss)
+                if step > 0 and step % self.p.steps_per_save == 0:
                     for i in range(self.p.batch_size):
                         img = to_image(imgs_efros[i])
                         img.save(os.path.join(sample_dir, f'{batch_id * 25 + i}.png'))
