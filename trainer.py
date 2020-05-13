@@ -66,68 +66,66 @@ class Trainer(object):
         os.makedirs(orig_sample_dir, exist_ok=True)
 
         G.target_classes.data = torch.tensor(class_idx).cuda()
+        print(class_idx)
 
-        for batch_id in range(2):
-            print(class_idx, batch_id)
+        z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
+        # Original samples
+        with torch.no_grad():
+            orig_samples = G(z_orig)
 
-            z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
-            # Original samples
-            with torch.no_grad():
-                orig_samples = G(z_orig)
+        imgs_efros = nn.Parameter(orig_samples, requires_grad=True)
+        optimizer = torch.optim.Adam([imgs_efros], lr=0.003, betas=(0.9, 0.999))
 
-            imgs_efros = nn.Parameter(orig_samples, requires_grad=True)
-            optimizer = torch.optim.Adam([imgs_efros], lr=0.003, betas=(0.9, 0.999))
+        for step in range(0, self.p.n_steps, 1):
+            G.zero_grad()
+            optimizer.zero_grad()
 
-            for step in range(0, self.p.n_steps, 1):
-                G.zero_grad()
-                optimizer.zero_grad()
+            imgs_adv = ((imgs_efros + 1.) / 2.).clamp(0, 1)
+            imgs_adv = F.interpolate(imgs_adv, size=(224, 224),
+                                     mode='bilinear', align_corners=False)
+            imgs_adv = (imgs_adv - mean) / std
 
-                imgs_adv = ((imgs_efros + 1.) / 2.).clamp(0, 1)
-                imgs_adv = F.interpolate(imgs_adv, size=(224, 224),
-                                         mode='bilinear', align_corners=False)
-                imgs_adv = (imgs_adv - mean) / std
+            ####################
+            probs = model(imgs_adv).sigmoid()
+            loss = probs.mean()
+            loss.backward()
+            optimizer.step()
 
-                ####################
-                probs = model(imgs_adv).sigmoid()
-                loss = probs.mean()
-                loss.backward()
-                optimizer.step()
+            if step == 0:
+                zero_step_probs = probs.detach()
+            if step % self.p.steps_per_log == 0:
+                self.log(step, loss)
+            if step % self.p.steps_per_save == 0:
+                for i in range(self.p.batch_size):
+                    img = to_image(imgs_efros[i])
+                    img.save(os.path.join(sample_dir, f'{i}.png'))
 
-                if step == 0:
-                    zero_step_probs = probs.detach()
-                if step % self.p.steps_per_log == 0:
-                    self.log(step, loss)
-                if step % self.p.steps_per_save == 0:
-                    for i in range(self.p.batch_size):
-                        img = to_image(imgs_efros[i])
-                        img.save(os.path.join(sample_dir, f'{batch_id * 25 + i}.png'))
+                    orig_img = to_image(orig_samples[i])
+                    orig_img.save(os.path.join(orig_sample_dir, f'{i}.png'))
 
-                        orig_img = to_image(orig_samples[i])
-                        orig_img.save(os.path.join(orig_sample_dir, f'{batch_id * 25 + i}.png'))
+                with PdfPages(f"efros_dataset_gz_200/{class_idx}_step{step}.pdf") as pdf:
+                    fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 200))
+                    for i in range(len(imgs_efros)):
+                        axes[i][0].imshow(to_image(orig_samples[i]))
+                        axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}", fontsize=12)
+                        axes[i][0].axis('off')
+                        axes[i][0].grid(False)
 
-                    with PdfPages(f"efros_dataset_gz_200/{class_idx}_{batch_id}_step{step}.pdf") as pdf:
-                        fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 200))
-                        for i in range(len(imgs_efros)):
-                            axes[i][0].imshow(to_image(orig_samples[i]))
-                            axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}", fontsize=12)
-                            axes[i][0].axis('off')
-                            axes[i][0].grid(False)
+                        axes[i][1].imshow(to_image(imgs_efros[i]))
+                        axes[i][1].set_title(f"After Prob: {probs[i].item():.2}", fontsize=12)
+                        axes[i][1].axis('off')
+                        axes[i][1].grid(False)
 
-                            axes[i][1].imshow(to_image(imgs_efros[i]))
-                            axes[i][1].set_title(f"After Prob: {probs[i].item():.2}", fontsize=12)
-                            axes[i][1].axis('off')
-                            axes[i][1].grid(False)
+                        diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
+                        axes[i][2].imshow(diff_image)
+                        axes[i][2].set_title("Difference", fontsize=12)
+                        axes[i][2].axis('off')
+                        axes[i][2].grid(False)
 
-                            diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
-                            axes[i][2].imshow(diff_image)
-                            axes[i][2].set_title("Difference", fontsize=12)
-                            axes[i][2].axis('off')
-                            axes[i][2].grid(False)
-
-                        pdf.savefig(fig, bbox_inches='tight')
-                        # pdf.close()
-                        # fig_to_image(fig).save(f"efros_samples/step{step}.png")
-                        # plt.close(fig)
+                    pdf.savefig(fig, bbox_inches='tight')
+                    # pdf.close()
+                    # fig_to_image(fig).save(f"efros_samples/step{step}.png")
+                    # plt.close(fig)
 
 
 
