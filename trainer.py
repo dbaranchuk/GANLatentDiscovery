@@ -24,7 +24,7 @@ class Params(object):
 
         self.steps_per_log = 300
         self.steps_per_save = 300
-        self.l2_loss_weight = 10
+        self.l2_loss_weight = 5
 
         for key, val in kwargs.items():
             if val is not None:
