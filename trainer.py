@@ -18,15 +18,14 @@ plt.rcParams['ps.fonttype'] = 42
 
 class Params(object):
     def __init__(self, **kwargs):
-        self.n_steps = 101
+        self.n_steps = 201
         self.batch_size = 32
 
-        self.z_norm_loss_low_bound = 1.1
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.steps_per_log = 100
-        self.steps_per_save = 100
+        self.steps_per_log = 200
+        self.steps_per_save = 200
 
         for key, val in kwargs.items():
             if val is not None:
