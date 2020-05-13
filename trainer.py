@@ -21,8 +21,7 @@ class Params(object):
         self.n_steps = 201
         self.batch_size = 32
 
-        self.z_mean_weight = 200.0
-        self.z_std_weight = 200.0
+        self.l2_loss_weight = 10.0
 
         self.steps_per_log = 200
         self.steps_per_save = 200
@@ -71,9 +70,9 @@ class Trainer(object):
         z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
         # Original samples
         with torch.no_grad():
-            orig_samples = G(z_orig)
+            orig_imgs = G(z_orig)
 
-        imgs_efros = nn.Parameter(orig_samples, requires_grad=True)
+        imgs_efros = nn.Parameter(orig_imgs, requires_grad=True)
         optimizer = torch.optim.Adam([imgs_efros], lr=0.003, betas=(0.9, 0.999))
 
         for step in range(0, self.p.n_steps, 1):
@@ -87,7 +86,7 @@ class Trainer(object):
 
             ####################
             probs = model(imgs_adv).sigmoid()
-            loss = probs.mean()
+            loss = probs.mean() + self.p.l2_loss_weight * ((orig_imgs - imgs_efros) ** 2).mean()
             loss.backward()
             optimizer.step()
 
@@ -100,13 +99,13 @@ class Trainer(object):
                     img = to_image(imgs_efros[i])
                     img.save(os.path.join(sample_dir, f'{i}.png'))
 
-                    orig_img = to_image(orig_samples[i])
+                    orig_img = to_image(orig_imgs[i])
                     orig_img.save(os.path.join(orig_sample_dir, f'{i}.png'))
 
                 with PdfPages(f"efros_dataset_gz_200/{class_idx}_step{step}.pdf") as pdf:
                     fig, axes = plt.subplots(len(imgs_efros), 3, figsize=(20, 200))
                     for i in range(len(imgs_efros)):
-                        axes[i][0].imshow(to_image(orig_samples[i]))
+                        axes[i][0].imshow(to_image(orig_imgs[i]))
                         axes[i][0].set_title(f"Original Sample Prob: {zero_step_probs[i].item():.2}", fontsize=12)
                         axes[i][0].axis('off')
                         axes[i][0].grid(False)
@@ -116,7 +115,7 @@ class Trainer(object):
                         axes[i][1].axis('off')
                         axes[i][1].grid(False)
 
-                        diff_image = (imgs_efros[i] - orig_samples[i]).mean(0).cpu().detach()
+                        diff_image = (imgs_efros[i] - orig_imgs[i]).mean(0).cpu().detach()
                         axes[i][2].imshow(diff_image)
                         axes[i][2].set_title("Difference", fontsize=12)
                         axes[i][2].axis('off')
