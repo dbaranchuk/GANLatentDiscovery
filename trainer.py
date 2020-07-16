@@ -38,7 +38,7 @@ class Params(object):
         self.predictor_lr = 0.0001
 
         self.label_weight = 2.0
-        self.shift_weight = 0.5
+        self.shift_weight = 0.0
         self.deformation_loss_weight = 2.0
 
         self.n_steps = 50000 + 1
