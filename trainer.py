@@ -30,8 +30,8 @@ class Params(object):
     def __init__(self, **kwargs):
         self.global_deformation = False
         self.deformation_loss = DeformatorLoss.NONE
-        self.shift_scale = 6.0
-        self.min_shift = 0.5
+        self.shift_scale = 2.0
+        self.min_shift = 0.01
         self.shift_distribution = ShiftDistribution.UNIFORM
 
         self.deformator_lr = 0.0001
