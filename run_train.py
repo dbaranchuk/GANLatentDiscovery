@@ -93,6 +93,7 @@ def main():
     # inception.fc = torch.nn.Identity()
 
     # training
+    print("Start training...")
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
 
     if args.mode == 'train':

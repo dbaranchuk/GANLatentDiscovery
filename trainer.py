@@ -87,7 +87,7 @@ class Trainer(object):
         shifts[(shifts < self.p.min_shift) & (shifts > 0)] = self.p.min_shift
         shifts[(shifts > -self.p.min_shift) & (shifts < 0)] = -self.p.min_shift
 
-        z = torch.randn((len(target_indices), latent_dim))
+        z = torch.randn((len(target_indices), latent_dim), device='cuda')
         for i in range(self.p.batch_size):
             if target_indices[i] == 0:
                 z[i, :latent_dim // 2] += shifts[i]
