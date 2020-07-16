@@ -50,10 +50,10 @@ class Params(object):
 
         self.l2_loss_weight = 10.0
 
-        self.steps_per_log = 10
+        self.steps_per_log = 20
         self.steps_per_save = 1000
-        self.steps_per_img_log = 100
-        self.steps_per_backup = 100
+        self.steps_per_img_log = 200
+        self.steps_per_backup = 200
 
         self.max_latent_ind = 512
 
@@ -183,10 +183,10 @@ class Trainer(object):
             if step % self.p.steps_per_log == 0:
                 self.log(step, logit_loss, shift_loss, z_loss, loss)
 
-            if step % self.p.steps_per_save:
+            if step % self.p.steps_per_save == 0:
                 self.save_checkpoint(deformator, predictor, step)
 
-            if step % self.p.steps_per_img_log:
+            if step % self.p.steps_per_img_log == 0:
                 for i , (img, img_shifted) in enumerate(zip(imgs, imgs_shifted)):
                     img = to_image(img.detach().cpu().clamp(-1, 1))
                     img_shifted = to_image(img_shifted.detach().cpu().clamp(-1, 1))
