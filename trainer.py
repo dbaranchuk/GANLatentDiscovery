@@ -73,9 +73,8 @@ class Trainer(object):
         os.makedirs(self.models_dir, exist_ok=True)
         os.makedirs(self.images_dir, exist_ok=True)
 
-    def log(self, step, img_l2_loss, img_feat_l2_loss):
-            print('Step {} img_l2_loss: {:.3} perceptual_loss: {:.3}'.format(step, img_l2_loss.item(),
-                                                                              img_feat_l2_loss.item()))
+    def log(self, step, loss):
+            print('Step {} loss: {:.3}'.format(step, loss.item()))
 
     def make_shifts(self, latent_dim, target_indices=None):
         if target_indices is None:
@@ -185,4 +184,4 @@ class Trainer(object):
                 deformator_opt.step()
             shift_predictor_opt.step()
 
-            self.log(step, logit_loss.item(), loss.item())
+            self.log(step, loss)
