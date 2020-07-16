@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Normalize
 from visualization import fig_to_image
+from torch_tools.visualization import to_image
 
 from latent_deformator import DeformatorType, normal_projection_stat
 from enum import Enum
@@ -50,9 +51,9 @@ class Params(object):
         self.l2_loss_weight = 10.0
 
         self.steps_per_log = 10
-        self.steps_per_save = 10000
-        self.steps_per_img_log = 1000
-        self.steps_per_backup = 1000
+        self.steps_per_save = 1000
+        self.steps_per_img_log = 100
+        self.steps_per_backup = 100
 
         self.max_latent_ind = 512
 
@@ -66,7 +67,7 @@ class Trainer(object):
         if verbose:
             print('Trainer inited with:\n{}'.format(str(params.__dict__)))
         self.p = params
-        self.log_dir = out_dir
+        self.out_dir = out_dir
         self.models_dir = os.path.join(out_dir, 'models')
         self.images_dir = os.path.join(out_dir, 'images')
         os.makedirs(self.models_dir, exist_ok=True)
@@ -111,7 +112,7 @@ class Trainer(object):
             'deformator': deformator.state_dict(),
             'predictor': predictor.state_dict(),
         }
-        torch.save(state_dict, self.checkpoint)
+        torch.save(state_dict, f'{step}_' + self.checkpoint)
 
     def save_models(self, deformator, predictor, step):
         torch.save(deformator.state_dict(),
@@ -181,3 +182,15 @@ class Trainer(object):
 
             if step % self.p.steps_per_log == 0:
                 self.log(step, logit_loss, shift_loss, z_loss, loss)
+
+            if step % self.p.steps_per_save:
+                self.save_checkpoint(deformator, predictor, step)
+
+            if step % self.p.steps_per_img_log:
+                for i , (img, img_shifted) in enumerate(zip(imgs, imgs_shifted)):
+                    img = to_image(img.detach().cpu().clamp(-1, 1))
+                    img_shifted = to_image(img_shifted.detach().cpu().clamp(-1, 1))
+                    prefix = 'same' if target_indices[i].item() == 1 else 'different'
+                    img.save(os.path.join(self.out_dir, f'{prefix}_img_{step}_{i}.png'))
+                    img_shifted.save(os.path.join(self.out_dir, f'{prefix}_img_shifted_{step}_{i}.png'))
+
