@@ -112,7 +112,7 @@ class Trainer(object):
             'deformator': deformator.state_dict(),
             'predictor': predictor.state_dict(),
         }
-        torch.save(state_dict, f'{step}_' + self.checkpoint)
+        torch.save(state_dict, self.checkpoint)
 
     def save_models(self, deformator, predictor, step):
         torch.save(deformator.state_dict(),
