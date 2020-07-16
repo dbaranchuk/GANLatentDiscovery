@@ -9,9 +9,37 @@ import torch.nn.functional as F
 from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Normalize
 from visualization import fig_to_image
 
+from latent_deformator import DeformatorType, normal_projection_stat
+from enum import Enum
+
+
+class DeformatorLoss(Enum):
+    L2 = 0,
+    RELATIVE = 1,
+    STAT = 2,
+    NONE = 3,
+
+
+class ShiftDistribution(Enum):
+    NORMAL = 0,
+    UNIFORM = 1,
+
 
 class Params(object):
     def __init__(self, **kwargs):
+        self.global_deformation = False
+        self.deformation_loss = DeformatorLoss.NONE
+        self.shift_scale = 8.0  # 6.0
+        self.min_shift = 0.5
+        self.shift_distribution = ShiftDistribution.UNIFORM
+
+        self.deformator_lr = 0.0001
+        self.shift_predictor_lr = 0.0001
+
+        self.label_weight = 2.0
+        self.shift_weight = 0.5
+        self.deformation_loss_weight = 2.0
+
         self.n_steps = int(1e+5) + 1
         self.batch_size = 32
 
@@ -23,6 +51,10 @@ class Params(object):
 
         self.steps_per_log = 100
         self.steps_per_save = 10000
+        self.steps_per_img_log = 1000
+        self.steps_per_backup = 1000
+
+        self.max_latent_ind = 512
 
         for key, val in kwargs.items():
             if val is not None:
@@ -48,7 +80,7 @@ class Trainer(object):
         if target_indices is None:
             target_indices = torch.randint(0, self.p.max_latent_ind, [self.p.batch_size], device='cuda')
         if self.p.shift_distribution == ShiftDistribution.NORMAL:
-            shifts =  torch.randn(target_indices.shape, device='cuda')
+            shifts = torch.randn(target_indices.shape, device='cuda')
         elif self.p.shift_distribution == ShiftDistribution.UNIFORM:
             shifts = 2.0 * torch.rand(target_indices.shape, device='cuda') - 1.0
 
