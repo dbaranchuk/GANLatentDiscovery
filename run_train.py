@@ -14,11 +14,27 @@ from trainer import Trainer, Params
 from inception import InceptionV3
 from torchvision.models import inception_v3
 
-from lib.gan_model.model import Generator
 from latent_deformator import LatentDeformator
 from latent_shift_predictor import ResNetPredictor
 from constants import DEFORMATOR_TYPE_DICT, DEFORMATOR_LOSS_DICT, SHIFT_DISTRIDUTION_DICT, WEIGHTS
 
+
+##################################################
+import signal
+
+#Close session
+def handler(signum, frame):
+    raise Exception('Action took too much time')
+
+signal.signal(signal.SIGALRM, handler)
+signal.alarm(5)
+
+try:
+    from lib.gan_model.model import Generator
+except:
+    from lib.gan_model.model import Generator
+signal.alarm(0)
+################################################
 
 def main():
     parser = argparse.ArgumentParser(description='Latent space rectification')
