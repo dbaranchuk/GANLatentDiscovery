@@ -44,7 +44,7 @@ class Trainer(object):
             print('Step {} img_l2_loss: {:.3} perceptual_loss: {:.3}'.format(step, img_l2_loss.item(),
                                                                               img_feat_l2_loss.item()))
 
-    def train(self, G, inception):
+    def train(self, G, deformator, inception):
         transform = Compose([
             Resize(299),
             ToTensor(),
@@ -56,7 +56,7 @@ class Trainer(object):
 
         z_orig = make_noise(self.p.batch_size // 2, G.dim_z).cuda()
 
-         transformer(z_orig)
+         deformator(z_orig)
         z_adv = nn.Parameter(z_orig + 1e-6, requires_grad=True)
         optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
 
