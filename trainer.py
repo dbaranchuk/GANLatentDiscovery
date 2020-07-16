@@ -44,6 +44,50 @@ class Trainer(object):
             print('Step {} img_l2_loss: {:.3} perceptual_loss: {:.3}'.format(step, img_l2_loss.item(),
                                                                               img_feat_l2_loss.item()))
 
+    def make_shifts(self, latent_dim, target_indices=None):
+        if target_indices is None:
+            target_indices = torch.randint(0, self.p.max_latent_ind, [self.p.batch_size], device='cuda')
+        if self.p.shift_distribution == ShiftDistribution.NORMAL:
+            shifts =  torch.randn(target_indices.shape, device='cuda')
+        elif self.p.shift_distribution == ShiftDistribution.UNIFORM:
+            shifts = 2.0 * torch.rand(target_indices.shape, device='cuda') - 1.0
+
+        shifts = self.p.shift_scale * shifts
+        shifts[(shifts < self.p.min_shift) & (shifts > 0)] = self.p.min_shift
+        shifts[(shifts > -self.p.min_shift) & (shifts < 0)] = -self.p.min_shift
+
+        if isinstance(latent_dim, int):
+            latent_dim = [latent_dim]
+        z_shift = torch.zeros([self.p.batch_size] + latent_dim, device='cuda')
+        for i, (index, val) in enumerate(zip(target_indices, shifts)):
+            z_shift[i][index] += val
+
+        return target_indices, shifts, z_shift
+
+    def start_from_checkpoint(self, deformator, shift_predictor):
+        step = 0
+        if os.path.isfile(self.checkpoint):
+            state_dict = torch.load(self.checkpoint)
+            step = state_dict['step']
+            deformator.load_state_dict(state_dict['deformator'])
+            shift_predictor.load_state_dict(state_dict['shift_predictor'])
+            print('starting from step {}'.format(step))
+        return step
+
+    def save_checkpoint(self, deformator, shift_predictor, step):
+        state_dict = {
+            'step': step,
+            'deformator': deformator.state_dict(),
+            'shift_predictor': shift_predictor.state_dict(),
+        }
+        torch.save(state_dict, self.checkpoint)
+
+    def save_models(self, deformator, shift_predictor, step):
+        torch.save(deformator.state_dict(),
+                   os.path.join(self.models_dir, 'deformator_{}.pt'.format(step)))
+        torch.save(shift_predictor.state_dict(),
+                   os.path.join(self.models_dir, 'shift_predictor_{}.pt'.format(step)))
+
 
     def train(self, G, deformator, shift_predictor, inception):
         G.cuda().eval()
