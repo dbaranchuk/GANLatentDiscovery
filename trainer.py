@@ -191,6 +191,6 @@ class Trainer(object):
                     img = to_image(img.detach().cpu().clamp(-1, 1))
                     img_shifted = to_image(img_shifted.detach().cpu().clamp(-1, 1))
                     prefix = 'same' if target_indices[i].item() == 1 else 'different'
-                    img.save(os.path.join(self.out_dir, f'{prefix}_img_{step}_{i}.png'))
-                    img_shifted.save(os.path.join(self.out_dir, f'{prefix}_img_shifted_{step}_{i}.png'))
+                    img.save(os.path.join(self.out_dir, f'{prefix}_img_{i}.png'))
+                    img_shifted.save(os.path.join(self.out_dir, f'{prefix}_img_shifted_{i}.png'))
 
