@@ -93,7 +93,7 @@ def main():
         G = make_proggan(weights_path).eval()
     elif args.gan_type == 'StyleGAN2':
         pretrained_model = torch.load(weights_path)
-        G = Generator(1024, 512, 8, channel_multiplier=2)
+        G = Generator(256, 512, 8, channel_multiplier=2)
         G.load_state_dict(pretrained_model['g_ema'], strict=False)
         G.train(False)
         G.dim_z = G.style_dim
