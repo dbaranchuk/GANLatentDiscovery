@@ -16,7 +16,7 @@ from torchvision.models import inception_v3
 
 from lib.gan_model.model import Generator
 from latent_deformator import LatentDeformator
-from latent_shift_predictor import ResNetShiftPredictor
+from latent_shift_predictor import ResNetPredictor
 from constants import DEFORMATOR_TYPE_DICT, DEFORMATOR_LOSS_DICT, SHIFT_DISTRIDUTION_DICT, WEIGHTS
 
 
@@ -34,14 +34,14 @@ def main():
     parser.add_argument('--seed', type=int, default=2)
     parser.add_argument('--device', type=int, default=0)
 
-    parser.add_argument('--deformator', type=str, default='ortho',
+    parser.add_argument('--deformator', type=str, default='fc',
                         choices=DEFORMATOR_TYPE_DICT.keys())
     parser.add_argument('--deformator_random_init', type=bool, default=False)
 
-    parser.add_argument('--shift_predictor_size', type=int)
-    parser.add_argument('--shift_predictor', type=str,
+    parser.add_argument('--predictor_size', type=int, default=224)
+    parser.add_argument('--predictor', type=str,
                         choices=['ResNet', 'LeNet'], default='ResNet')
-    parser.add_argument('--shift_distribution_key', type=str,
+    parser.add_argument('--distribution_key', type=str,
                         choices=SHIFT_DISTRIDUTION_DICT.keys())
 
     parser.add_argument('--mode', type=str, default='train')
@@ -87,8 +87,7 @@ def main():
     deformator = LatentDeformator(G.dim_z,
                                   type=DEFORMATOR_TYPE_DICT[args.deformator],
                                   random_init=args.deformator_random_init).cuda()
-
-    shift_predictor = ResNetShiftPredictor(G.dim_z, args.shift_predictor_size).cuda()
+    predictor = ResNetPredictor(args.predictor_size).cuda()
 
     # inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
     # inception.fc = torch.nn.Identity()
@@ -97,7 +96,7 @@ def main():
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
 
     if args.mode == 'train':
-        trainer.train(G, deformator, shift_predictor)
+        trainer.train(G, deformator, predictor)
 
 
 if __name__ == '__main__':

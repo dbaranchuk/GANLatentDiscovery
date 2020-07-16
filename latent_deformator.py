@@ -16,7 +16,6 @@ class DeformatorType(Enum):
     RANDOM = 6
 
 
-
 class LatentDeformator(nn.Module):
     def __init__(self, target_dim, inner_dim=1024, out_dim=None,
                  type=DeformatorType.FC, random_init=False):
