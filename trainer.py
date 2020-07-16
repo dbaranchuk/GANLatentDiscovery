@@ -136,7 +136,7 @@ class Trainer(object):
             deformator.zero_grad()
             shift_predictor.zero_grad()
 
-            z = make_noise(self.p.batch_size, G.style_dim).cuda()
+            z = make_noise(self.p.batch_size, G.dim_z).cuda()
             z_orig = torch.clone(z)
             target_indices, shifts, z_shift = self.make_shifts(G.dim_z)
 

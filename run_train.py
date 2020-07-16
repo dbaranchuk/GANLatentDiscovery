@@ -13,17 +13,11 @@ from models.gan_load import make_big_gan, make_proggan, make_external
 from trainer import Trainer, Params
 from inception import InceptionV3
 from torchvision.models import inception_v3
+
 from lib.gan_model.model import Generator
 from latent_deformator import LatentDeformator
 from latent_shift_predictor import ResNetShiftPredictor
-
-WEIGHTS = {
-    'BigGAN': 'models/pretrained/BigGAN/138k/G_ema.pth',
-    'ProgGAN': 'models/pretrained/ProgGAN/100_celeb_hq_network-snapshot-010403.pth',
-    'SN_MNIST': 'models/pretrained/GANs/SN_MNIST',
-    'Anime_64': 'models/pretrained/GANs/SN_Anime',
-    'StyleGAN2': 'pretrained_stylegan2/stylegan2-ffhq-config-f.pt'
-}
+from constants import DEFORMATOR_TYPE_DICT, DEFORMATOR_LOSS_DICT, SHIFT_DISTRIDUTION_DICT, WEIGHTS
 
 
 def main():
@@ -86,6 +80,7 @@ def main():
         G = Generator(1024, 512, 8, channel_multiplier=2)
         G.load_state_dict(pretrained_model['g_ema'], strict=False)
         G.train(False)
+        G.dim_z = G.style_dim
     else:
         G = make_external(weights_path).eval()
 
