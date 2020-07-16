@@ -35,11 +35,7 @@ class LatentDeformator(nn.Module):
             self.bn2 = nn.BatchNorm1d(inner_dim)
             self.act2 = nn.ELU()
 
-            self.fc3 = nn.Linear(inner_dim, inner_dim)
-            self.bn3 = nn.BatchNorm1d(inner_dim)
-            self.act3 = nn.ELU()
-
-            self.fc4 = nn.Linear(inner_dim, self.out_dim)
+            self.fc3 = nn.Linear(inner_dim, self.out_dim)
 
         elif self.type in [DeformatorType.LINEAR, DeformatorType.PROJECTIVE]:
             self.linear = nn.Linear(self.input_dim, self.out_dim)
@@ -71,11 +67,7 @@ class LatentDeformator(nn.Module):
 
             x2 = self.fc2(x)
             x = self.act2(self.bn2(x2 + x1))
-
-            x3 = self.fc3(x)
-            x = self.act3(self.bn3(x3 + x2 + x1))
-
-            out = self.fc4(x) + input
+            out = self.fc3(x) + input
         elif self.type == DeformatorType.LINEAR:
             out  = self.linear(input)
         elif self.type == DeformatorType.PROJECTIVE:
