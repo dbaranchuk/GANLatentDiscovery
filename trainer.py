@@ -10,7 +10,6 @@ from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Normal
 from visualization import fig_to_image
 
 from latent_deformator import DeformatorType, normal_projection_stat
-from latent_shift_predictor import ResNetShiftPredictor
 from enum import Enum
 
 
@@ -35,7 +34,7 @@ class Params(object):
         self.shift_distribution = ShiftDistribution.UNIFORM
 
         self.deformator_lr = 0.0001
-        self.shift_predictor_lr = 0.0001
+        self.predictor_lr = 0.0001
 
         self.label_weight = 2.0
         self.shift_weight = 0.5
@@ -76,8 +75,8 @@ class Trainer(object):
         self.cross_entropy = nn.CrossEntropyLoss()
         self.checkpoint = os.path.join(out_dir, 'checkpoint.pt')
 
-    def log(self, step, loss):
-            print('Step {} loss: {:.3}'.format(step, loss.item()))
+    def log(self, step, logit_loss, shift_loss, z_loss, loss):
+            print(f'Step {step} | {logit_loss:.3} | {shift_loss:.3} | {z_loss.item():.3} | Loss: {loss.item():.3}')
 
     def make_shifts(self, latent_dim, target_indices=None):
         if target_indices is None:
@@ -127,7 +126,7 @@ class Trainer(object):
 
         deformator_opt = torch.optim.Adam(deformator.parameters(), lr=self.p.deformator_lr) \
             if deformator.type not in [DeformatorType.ID, DeformatorType.RANDOM] else None
-        shift_predictor_opt = torch.optim.Adam(predictor.parameters(), lr=self.p.shift_predictor_lr)
+        shift_predictor_opt = torch.optim.Adam(predictor.parameters(), lr=self.p.predictor_lr)
 
         recovered_step = self.start_from_checkpoint(deformator, predictor)
         for step in range(recovered_step, self.p.n_steps, 1):
@@ -149,8 +148,9 @@ class Trainer(object):
             imgs = G(z)
             imgs_shifted = G(z_shifted)
 
-            logits = predictor(imgs, imgs_shifted)
+            logits, shift_predictions = predictor(imgs, imgs_shifted)
             logit_loss = self.p.label_weight * self.cross_entropy(logits, target_indices)
+            shift_loss = self.p.shift_weight * torch.mean(torch.abs(shift_predictions - shifts))
 
             # Loss
             # deformator penalty
@@ -172,11 +172,11 @@ class Trainer(object):
                 z_loss = torch.tensor([0.0], device='cuda')
 
             # total loss
-            loss = logit_loss + z_loss
+            loss = logit_loss + shift_loss + z_loss
             loss.backward()
 
             if deformator_opt is not None:
                 deformator_opt.step()
             shift_predictor_opt.step()
 
-            self.log(step, logit_loss, z_loss, loss)
+            self.log(step, logit_loss, shift_loss, z_loss, loss)
