@@ -73,6 +73,9 @@ class Trainer(object):
         os.makedirs(self.models_dir, exist_ok=True)
         os.makedirs(self.images_dir, exist_ok=True)
 
+        self.cross_entropy = nn.CrossEntropyLoss()
+        self.checkpoint = os.path.join(out_dir, 'checkpoint.pt')
+
     def log(self, step, loss):
             print('Step {} loss: {:.3}'.format(step, loss.item()))
 
