@@ -120,8 +120,7 @@ class Trainer(object):
         torch.save(shift_predictor.state_dict(),
                    os.path.join(self.models_dir, 'shift_predictor_{}.pt'.format(step)))
 
-
-    def train(self, G, deformator, shift_predictor, inception):
+    def train(self, G, deformator, shift_predictor, inception=None):
         G.cuda().eval()
         deformator.cuda().train()
         shift_predictor.cuda().train()

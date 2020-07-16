@@ -15,6 +15,7 @@ from inception import InceptionV3
 from torchvision.models import inception_v3
 from lib.gan_model.model import Generator
 from latent_deformator import LatentDeformator
+from latent_shift_predictor import ResNetShiftPredictor
 
 WEIGHTS = {
     'BigGAN': 'models/pretrained/BigGAN/138k/G_ema.pth',
@@ -82,14 +83,16 @@ def main():
                                   type=DEFORMATOR_TYPE_DICT[args.deformator],
                                   random_init=args.deformator_random_init).cuda()
 
-    inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
-    inception.fc = torch.nn.Identity()
+    shift_predictor = ResNetShiftPredictor(G.dim_z, args.shift_predictor_size).cuda()
+
+    # inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
+    # inception.fc = torch.nn.Identity()
 
     # training
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
 
     if args.mode == 'train':
-        trainer.train(G, deformator, inception)
+        trainer.train(G, deformator, shift_predictor)
 
 
 if __name__ == '__main__':
