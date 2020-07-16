@@ -145,9 +145,8 @@ class Trainer(object):
             else:
                 z_shifted = z + deformator(z_shift)
 
-            print(z.shape, z_shifted.shape)
-            imgs = G(z)
-            imgs_shifted = G(z_shifted)
+            imgs = G([z])[0]
+            imgs_shifted = G([z_shifted])[0]
 
             logits, shift_predictions = predictor(imgs, imgs_shifted)
             logit_loss = self.p.label_weight * self.cross_entropy(logits, target_indices)

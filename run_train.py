@@ -27,7 +27,7 @@ def handler(signum, frame):
     raise Exception('Action took too much time')
 
 signal.signal(signal.SIGALRM, handler)
-signal.alarm(5)
+signal.alarm(3)
 
 try:
     from lib.gan_model.model import Generator
