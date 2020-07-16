@@ -10,6 +10,7 @@ from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Normal
 from visualization import fig_to_image
 
 from latent_deformator import DeformatorType, normal_projection_stat
+from latent_shift_predictor import ResNetShiftPredictor
 from enum import Enum
 
 
