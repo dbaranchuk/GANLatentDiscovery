@@ -41,7 +41,7 @@ class Params(object):
         self.shift_weight = 0.5
         self.deformation_loss_weight = 2.0
 
-        self.n_steps = int(1e+5) + 1
+        self.n_steps = 50000 + 1
         self.batch_size = 32
 
         self.z_norm_loss_low_bound = 1.1
