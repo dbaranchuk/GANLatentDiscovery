@@ -13,12 +13,14 @@ from models.gan_load import make_big_gan, make_proggan, make_external
 from trainer import Trainer, Params
 from inception import InceptionV3
 from torchvision.models import inception_v3
+from lib.gan_model.model import Generator
 
 WEIGHTS = {
     'BigGAN': 'models/pretrained/BigGAN/138k/G_ema.pth',
     'ProgGAN': 'models/pretrained/ProgGAN/100_celeb_hq_network-snapshot-010403.pth',
     'SN_MNIST': 'models/pretrained/GANs/SN_MNIST',
     'Anime_64': 'models/pretrained/GANs/SN_Anime',
+    'StyleGAN2': 'pretrained_stylegan2/stylegan2-ffhq-config-f.pt'
 }
 
 
@@ -67,6 +69,11 @@ def main():
         G = make_big_gan(weights_path, args.target_class).eval()
     elif args.gan_type == 'ProgGAN':
         G = make_proggan(weights_path).eval()
+    elif args.gan_type == 'StyleGAN2':
+        pretrained_model = torch.load(weights_path)
+        G = Generator(1024, 512, 8, channel_multiplier=2)
+        G.load_state_dict(pretrained_model['g_ema'], strict=False)
+        G.train(False)
     else:
         G = make_external(weights_path).eval()
 

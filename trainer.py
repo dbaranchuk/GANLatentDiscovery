@@ -54,7 +54,9 @@ class Trainer(object):
 
         G.cuda().eval()
 
-        z_orig = make_noise(self.p.batch_size, G.dim_z).cuda()
+        z_orig = make_noise(self.p.batch_size // 2, G.dim_z).cuda()
+
+         transformer(z_orig)
         z_adv = nn.Parameter(z_orig + 1e-6, requires_grad=True)
         optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
 
@@ -63,9 +65,6 @@ class Trainer(object):
 
         imgs = torch.cat([transform(to_image(img))[None] for img in imgs]).cuda()
         img_feats = inception(imgs).detach()
-
-        os.makedirs("adv_samples", exist_ok=True)
-        torch.save(z_orig, "adv_samples/orig_z.pt")
 
         for step in range(0, self.p.n_steps, 1):
             G.zero_grad()
