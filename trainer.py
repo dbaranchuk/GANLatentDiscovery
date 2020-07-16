@@ -44,70 +44,68 @@ class Trainer(object):
             print('Step {} img_l2_loss: {:.3} perceptual_loss: {:.3}'.format(step, img_l2_loss.item(),
                                                                               img_feat_l2_loss.item()))
 
-    def train(self, G, deformator, inception):
-        transform = Compose([
-            Resize(299),
-            ToTensor(),
-            Normalize(mean=[0.485, 0.456, 0.406],
-                      std=[0.229, 0.224, 0.225])
-        ])
 
+    def train(self, G, deformator, shift_predictor, inception):
         G.cuda().eval()
+        deformator.cuda().train()
+        shift_predictor.cuda().train()
 
-        z_orig = make_noise(self.p.batch_size // 2, G.dim_z).cuda()
+        deformator_opt = torch.optim.Adam(deformator.parameters(), lr=self.p.deformator_lr) \
+            if deformator.type not in [DeformatorType.ID, DeformatorType.RANDOM] else None
+        shift_predictor_opt = torch.optim.Adam(
+            shift_predictor.parameters(), lr=self.p.shift_predictor_lr)
 
-         deformator(z_orig)
-        z_adv = nn.Parameter(z_orig + 1e-6, requires_grad=True)
-        optimizer = torch.optim.Adam([z_adv], lr=0.003, betas=(0.9, 0.999))
-
-        imgs = G(z_orig).detach()
-        orig_imgs = imgs.clone()
-
-        imgs = torch.cat([transform(to_image(img))[None] for img in imgs]).cuda()
-        img_feats = inception(imgs).detach()
-
-        for step in range(0, self.p.n_steps, 1):
+        recovered_step = self.start_from_checkpoint(deformator, shift_predictor)
+        for step in range(recovered_step, self.p.n_steps, 1):
             G.zero_grad()
-            optimizer.zero_grad()
+            deformator.zero_grad()
+            shift_predictor.zero_grad()
 
-            imgs_adv = G(z_adv)
-            imgs_loss = self.p.l2_loss_weight * ((orig_imgs - imgs_adv) ** 2).mean()
+            z = make_noise(self.p.batch_size, G.style_dim).cuda()
+            z_orig = torch.clone(z)
+            target_indices, shifts, z_shift = self.make_shifts(G.dim_z)
 
-            imgs_adv = ((imgs_adv + 1.) / 2.).clamp(0, 1)
-            imgs_adv = F.interpolate(imgs_adv, size=(299, 299),
-                                     mode='bilinear', align_corners=False)
-            mean = torch.tensor([0.485, 0.456, 0.406]).cuda()
-            std = torch.tensor([0.229, 0.224, 0.225]).cuda()
-            imgs_adv = (imgs_adv - mean[..., None, None]) / std[..., None, None]
+            # Deformation
 
-            img_adv_feats = inception(imgs_adv)
-            perceptual_loss = ((img_feats - img_adv_feats) ** 2).mean()
+            if self.p.global_deformation:
+                z_shifted = deformator(z + z_shift)
+                z = deformator(z)
+            else:
+                z_shifted = z + deformator(z_shift)
 
-            loss = imgs_loss - perceptual_loss
+            imgs = G(z)
+            imgs_shifted = G(z_shifted)
+
+            logits, shift_prediction = shift_predictor(imgs, imgs_shifted)
+            logit_loss = self.p.label_weight * self.cross_entropy(logits, target_indices)
+            shift_loss = self.p.shift_weight * torch.mean(torch.abs(shift_prediction - shifts))
+
+            # Loss
+
+            # deformator penalty
+            if self.p.deformation_loss == DeformatorLoss.STAT:
+                z_std, z_mean = normal_projection_stat(z)
+                z_loss = self.p.z_mean_weight * torch.abs(z_mean) + \
+                         self.p.z_std_weight * torch.abs(1.0 - z_std)
+
+            elif self.p.deformation_loss == DeformatorLoss.L2:
+                z_loss = self.p.deformation_loss_weight * torch.mean(torch.norm(z, dim=1))
+                if z_loss < self.p.z_norm_loss_low_bound * torch.mean(torch.norm(z_orig, dim=1)):
+                    z_loss = torch.tensor([0.0], device='cuda')
+
+            elif self.p.deformation_loss == DeformatorLoss.RELATIVE:
+                deformation_norm = torch.norm(z - z_shifted, dim=1)
+                z_loss = self.p.deformation_loss_weight * torch.mean(torch.abs(deformation_norm - shifts))
+
+            else:
+                z_loss = torch.tensor([0.0], device='cuda')
+
+            # total loss
+            loss = logit_loss + shift_loss + z_loss
             loss.backward()
-            optimizer.step()
 
-            if step % self.p.steps_per_log == 0:
-                self.log(step, imgs_loss, perceptual_loss)
-            if step % self.p.steps_per_save == 0:
-                torch.save(z_adv.data, f"adv_samples/adv_z_{step}.pt")
-                for i in range(len(imgs_adv)):
+            if deformator_opt is not None:
+                deformator_opt.step()
+            shift_predictor_opt.step()
 
-                    fig, axes = plt.subplots(1, 3, figsize=(12, 6))
-
-                    axes[0].imshow(to_image(imgs[i]))
-                    axes[0].set_title("Original")
-
-                    axes[1].imshow(to_image(imgs_adv[i]))
-                    axes[1].set_title("Adversarial")
-
-                    diff_image = (imgs_adv[i] - imgs[i]).mean(0).cpu().detach()
-                    axes[2].imshow(diff_image)
-                    axes[2].set_title("Difference")
-
-                    fig_to_image(fig).save(f"adv_samples/{i}_step{step}.png")
-                    plt.close(fig)
-
-
-
-
+            self.log(step, logit_loss.item(), loss.item())
