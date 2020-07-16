@@ -50,10 +50,10 @@ class Params(object):
 
         self.l2_loss_weight = 10.0
 
-        self.steps_per_log = 20
+        self.steps_per_log = 50
         self.steps_per_save = 1000
-        self.steps_per_img_log = 200
-        self.steps_per_backup = 200
+        self.steps_per_img_log = 1000
+        self.steps_per_backup = 1000
 
         self.max_latent_ind = 512
 
