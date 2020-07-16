@@ -49,7 +49,7 @@ class Params(object):
 
         self.l2_loss_weight = 10.0
 
-        self.steps_per_log = 100
+        self.steps_per_log = 10
         self.steps_per_save = 10000
         self.steps_per_img_log = 1000
         self.steps_per_backup = 1000
@@ -179,4 +179,5 @@ class Trainer(object):
                 deformator_opt.step()
             shift_predictor_opt.step()
 
-            self.log(step, logit_loss, shift_loss, z_loss, loss)
+            if step % self.p.steps_per_log == 0:
+                self.log(step, logit_loss, shift_loss, z_loss, loss)
