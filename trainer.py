@@ -210,14 +210,14 @@ class Trainer(object):
                 fig, axes = plt.subplots(self.p.batch_size, 2, figsize=(20, 40))
                 for i , (img, img_shifted) in enumerate(zip(imgs, imgs_shifted)):
                     img = to_image(img.detach().cpu().clamp(-1, 1))
-                    axes[2 * i].imshow(img)
-                    axes[2 * i].axis('off')
-                    axes[2 * i].title(f"Image | Dim {target_indices[i].item()}")
+                    axes[2 * i, 0].imshow(img)
+                    axes[2 * i, 0].axis('off')
+                    axes[2 * i, 0].title(f"Image | Dim {target_indices[i].item()}")
 
                     img_shifted = to_image(img_shifted.detach().cpu().clamp(-1, 1))
-                    axes[2 * i + 1].imshow(img_shifted)
-                    axes[2 * i + 1].axis('off')
-                    axes[2 * i + 1].title(f"Shifted image | Dim {target_indices[i].item()}")
+                    axes[2 * i, 1].imshow(img_shifted)
+                    axes[2 * i, 1].axis('off')
+                    axes[2 * i, 1].title(f"Shifted image | Dim {target_indices[i].item()}")
 
                 fig_to_image(fig).save(os.path.join(self.out_dir, f"step{step}.png"))
                 plt.close(fig)
