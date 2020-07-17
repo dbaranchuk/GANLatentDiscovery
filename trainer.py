@@ -81,20 +81,40 @@ class Trainer(object):
 
     def make_shifts(self, latent_dim, target_indices=None):
         if target_indices is None:
-            target_indices = torch.randint(0, 2, [self.p.batch_size], device='cuda')
+            target_indices = torch.randint(0, self.p.max_latent_ind, [self.p.batch_size], device='cuda')
+        if self.p.shift_distribution == ShiftDistribution.NORMAL:
+            shifts =  torch.randn(target_indices.shape, device='cuda')
+        elif self.p.shift_distribution == ShiftDistribution.UNIFORM:
+            shifts = 2.0 * torch.rand(target_indices.shape, device='cuda') - 1.0
 
-        shifts = torch.randn(target_indices.shape, device='cuda')
         shifts = self.p.shift_scale * shifts
         shifts[(shifts < self.p.min_shift) & (shifts > 0)] = self.p.min_shift
         shifts[(shifts > -self.p.min_shift) & (shifts < 0)] = -self.p.min_shift
 
-        z = torch.randn((len(target_indices), latent_dim), device='cuda')
-        for i in range(self.p.batch_size):
-            if target_indices[i] == 0:
-                z[i, :latent_dim // 2] += shifts[i]
-            else:
-                z[i, latent_dim // 2:] += shifts[i]
-        return target_indices, shifts, z
+        if isinstance(latent_dim, int):
+            latent_dim = [latent_dim]
+        z_shift = torch.zeros([self.p.batch_size] + latent_dim, device='cuda')
+        for i, (index, val) in enumerate(zip(target_indices, shifts)):
+            z_shift[i][index] += val
+
+        return target_indices, shifts, z_shift
+
+    # def make_shifts(self, latent_dim, target_indices=None):
+    #     if target_indices is None:
+    #         target_indices = torch.randint(0, 2, [self.p.batch_size], device='cuda')
+    #
+    #     shifts = torch.randn(target_indices.shape, device='cuda')
+    #     shifts = self.p.shift_scale * shifts
+    #     shifts[(shifts < self.p.min_shift) & (shifts > 0)] = self.p.min_shift
+    #     shifts[(shifts > -self.p.min_shift) & (shifts < 0)] = -self.p.min_shift
+    #
+    #     z = torch.randn((len(target_indices), latent_dim), device='cuda')
+    #     for i in range(self.p.batch_size):
+    #         if target_indices[i] == 0:
+    #             z[i, :latent_dim // 2] += shifts[i]
+    #         else:
+    #             z[i, latent_dim // 2:] += shifts[i]
+    #     return target_indices, shifts, z
 
     def start_from_checkpoint(self, deformator, predictor):
         step = 0
