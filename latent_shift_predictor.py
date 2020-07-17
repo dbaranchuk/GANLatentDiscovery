@@ -11,7 +11,7 @@ def save_hook(module, input, output):
 
 class ResNetPredictor(nn.Module):
     def __init__(self, dim, downsample=None):
-        super(ResNetShiftPredictor, self).__init__()
+        super(ResNetPredictor, self).__init__()
         self.features_extractor = resnet34(pretrained=False)
         self.features_extractor.conv1 = nn.Conv2d(
             6, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
