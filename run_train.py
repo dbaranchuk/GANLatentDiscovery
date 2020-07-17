@@ -62,7 +62,7 @@ def main():
                         choices=SHIFT_DISTRIDUTION_DICT.keys())
 
     parser.add_argument('--mode', type=str, default='train')
-    parser.add_argument('--global_deformation', type=bool, default=False)
+
 
     args = parser.parse_args()
     torch.cuda.set_device(args.device)
@@ -108,8 +108,6 @@ def main():
                                   type=DEFORMATOR_TYPE_DICT[args.deformator],
                                   random_init=args.deformator_random_init).cuda()
     predictor = ResNetPredictor(G.dim_z, args.predictor_size).cuda()
-    print(deformator)
-
     # inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
     # inception.fc = torch.nn.Identity()
 
