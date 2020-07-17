@@ -207,9 +207,21 @@ class Trainer(object):
                 self.save_checkpoint(deformator, predictor, step)
 
             if step % self.p.steps_per_img_log == 0:
+                plt.figure(figsize=(20, 40))
                 for i , (img, img_shifted) in enumerate(zip(imgs, imgs_shifted)):
+                    plt.subplot(10, 2, 2*i + 1)
                     img = to_image(img.detach().cpu().clamp(-1, 1))
+                    plt.imshow(img)
+                    plt.axis('off')
+                    plt.title(f"Image | Dim {target_indices[i].item()}")
+
+                    plt.subplot(10, 2, 2 * i + 2)
                     img_shifted = to_image(img_shifted.detach().cpu().clamp(-1, 1))
+                    plt.imshow(img_shifted)
+                    plt.axis('off')
+                    plt.title(f"Shifted image | Dim {target_indices[i].item()}")
+
+
                     prefix = 'same' if target_indices[i].item() == 1 else 'different'
                     img.save(os.path.join(self.out_dir, f'{prefix}_img_{i}.png'))
                     img_shifted.save(os.path.join(self.out_dir, f'{prefix}_img_shifted_{i}.png'))
