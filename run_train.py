@@ -98,6 +98,8 @@ def main():
         G.load_state_dict(pretrained_model['g_ema'], strict=False)
         G.train(False)
         G.dim_z = G.style_dim
+        for param in G.parameters():
+            param.requires_grad = False
     else:
         G = make_external(weights_path).eval()
 
