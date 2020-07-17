@@ -51,7 +51,7 @@ def main():
     parser.add_argument('--seed', type=int, default=2)
     parser.add_argument('--device', type=int, default=0)
 
-    parser.add_argument('--deformator', type=str, default='fc',
+    parser.add_argument('--deformator', type=str, default='ortho',
                         choices=DEFORMATOR_TYPE_DICT.keys())
     parser.add_argument('--deformator_random_init', type=bool, default=False)
 
