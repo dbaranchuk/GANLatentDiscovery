@@ -10,8 +10,8 @@ def save_hook(module, input, output):
 
 
 class ResNetPredictor(nn.Module):
-    def __init__(self, downsample=None):
-        super(ResNetPredictor, self).__init__()
+    def __init__(self, dim, downsample=None):
+        super(ResNetShiftPredictor, self).__init__()
         self.features_extractor = resnet34(pretrained=False)
         self.features_extractor.conv1 = nn.Conv2d(
             6, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
@@ -23,7 +23,7 @@ class ResNetPredictor(nn.Module):
         self.downsample = downsample
 
         # half dimension as we expect the model to be symmetric
-        self.classifier = nn.Linear(self.features_extractor.fc.weight.shape[1], 2)
+        self.type_estimator = nn.Linear(self.features_extractor.fc.weight.shape[1], np.product(dim))
         self.shift_predictor = nn.Linear(self.features_extractor.fc.weight.shape[1], 1)
 
     def forward(self, x1, x2):
@@ -33,6 +33,7 @@ class ResNetPredictor(nn.Module):
         self.features_extractor(torch.cat([x1, x2], dim=1))
         features = self.features.output.view([batch_size, -1])
 
-        logits = self.classifier(features)
-        shifts = self.shift_predictor(features)
-        return logits, shifts
+        logits = self.type_estimator(features)
+        shift = self.shift_estimator(features)
+
+        return logits, shift.squeeze()

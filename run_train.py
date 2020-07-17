@@ -104,7 +104,8 @@ def main():
     deformator = LatentDeformator(G.dim_z,
                                   type=DEFORMATOR_TYPE_DICT[args.deformator],
                                   random_init=args.deformator_random_init).cuda()
-    predictor = ResNetPredictor(args.predictor_size).cuda()
+    predictor = ResNetPredictor(G.dim_z, args.predictor_size).cuda()
+    print(deformator)
 
     # inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
     # inception.fc = torch.nn.Identity()
