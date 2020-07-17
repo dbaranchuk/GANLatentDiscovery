@@ -35,25 +35,23 @@ class Params(object):
         self.shift_distribution = ShiftDistribution.UNIFORM
 
         self.deformator_lr = 0.0001
-        self.predictor_lr = 0.0001
+        self.predictor_lr = 0.0002
 
         self.label_weight = 2.0
         self.shift_weight = 0.5
         self.deformation_loss_weight = 2.0
 
         self.n_steps = 50000 + 1
-        self.batch_size = 32
+        self.batch_size = 12
 
         self.z_norm_loss_low_bound = 1.1
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
 
-        self.l2_loss_weight = 10.0
-
         self.steps_per_log = 50
-        self.steps_per_save = 1000
-        self.steps_per_img_log = 1000
-        self.steps_per_backup = 1000
+        self.steps_per_save = 2000
+        self.steps_per_img_log = 2000
+        self.steps_per_backup = 2000
 
         self.max_latent_ind = 512
 
