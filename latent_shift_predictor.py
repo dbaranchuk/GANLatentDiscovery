@@ -24,7 +24,7 @@ class ResNetPredictor(nn.Module):
 
         # half dimension as we expect the model to be symmetric
         self.type_estimator = nn.Linear(self.features_extractor.fc.weight.shape[1], np.product(dim))
-        self.shift_predictor = nn.Linear(self.features_extractor.fc.weight.shape[1], 1)
+        self.shift_estimator = nn.Linear(self.features_extractor.fc.weight.shape[1], 1)
 
     def forward(self, x1, x2):
         batch_size = x1.shape[0]
