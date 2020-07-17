@@ -62,6 +62,7 @@ def main():
                         choices=SHIFT_DISTRIDUTION_DICT.keys())
 
     parser.add_argument('--mode', type=str, default='train')
+    parser.add_argument('--global_deformation', type=bool, default=False)
 
     args = parser.parse_args()
     torch.cuda.set_device(args.device)
