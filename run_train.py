@@ -13,10 +13,11 @@ from models.gan_load import make_big_gan, make_proggan, make_external
 from trainer import Trainer, Params
 from inception import InceptionV3
 from torchvision.models import inception_v3
+from efros_networks.resnet import resnet50 as efros_resnet50
 
 from lib.gan_model.model import Generator
 from latent_deformator import LatentDeformator
-from latent_shift_predictor import ResNetPredictor
+from latent_shift_predictor import ResNetPredictor, SiameseResNetPredictor
 from constants import DEFORMATOR_TYPE_DICT, DEFORMATOR_LOSS_DICT, SHIFT_DISTRIDUTION_DICT, WEIGHTS
 
 
@@ -56,9 +57,8 @@ def main():
     parser.add_argument('--deformator_random_init', type=bool, default=False)
 
     parser.add_argument('--predictor_size', type=int, default=224)
-    # parser.add_argument('--max_latent_ind', type=int, default=512)
     parser.add_argument('--predictor', type=str,
-                        choices=['ResNet', 'LeNet'], default='ResNet')
+                        choices=['ResNet', 'SiameseResNet'], default='ResNet')
     parser.add_argument('--distribution_key', type=str,
                         choices=SHIFT_DISTRIDUTION_DICT.keys())
 
@@ -108,14 +108,17 @@ def main():
     deformator = LatentDeformator(G.dim_z,
                                   type=DEFORMATOR_TYPE_DICT[args.deformator],
                                   random_init=args.deformator_random_init).cuda()
-    predictor = ResNetPredictor(G.dim_z, args.predictor_size).cuda()
+
+    if args.predictor == 'ResNet':
+        predictor = ResNetPredictor(args.max_latent_ind, args.predictor_size).cuda()
+    elif args.predictor == 'SiameseResNet':
+        predictor = SiameseResNetPredictor(args.max_latent_ind, args.predictor_size).cuda()
+    else:
+        raise Exception("Unknown predictor type")
     # inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
     # inception.fc = torch.nn.Identity()
 
-    from efros_networks.resnet import resnet50
-    from torchvision import transforms
-
-    efros_model = resnet50(num_classes=1)
+    efros_model = efros_resnet50(num_classes=1)
     state_dict = torch.load('efros_weights/blur_jpg_prob0.5.pth', map_location='cpu')
     efros_model.load_state_dict(state_dict['model'])
     efros_model.cuda().eval()
