@@ -226,7 +226,7 @@ class Trainer(object):
                     z_shift[i] += self.p.shift_scale
                     z_shifted[i] = z[i] + z_shift
 
-                fig, axes = plt.subplots(self.p.max_latent_ind, 8, figsize=(20, 10 * self.p.max_latent_ind // 4))
+                fig, axes = plt.subplots(self.p.max_latent_ind // 4, 8, figsize=(20, 10 * self.p.max_latent_ind // 4))
                 for dir_id in range(0, self.p.max_latent_ind, 4):
                     for i in range(4):
                         with torch.no_grad():
