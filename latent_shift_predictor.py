@@ -13,11 +13,6 @@ class SiameseResNetPredictor(nn.Module):
     def __init__(self, dim, downsample=None):
         super(SiameseResNetPredictor, self).__init__()
         self.features_extractor = resnet50(pretrained=False)
-        # self.features_extractor.conv1 = nn.Conv2d(
-        #     6, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-        # nn.init.kaiming_normal_(self.features_extractor.conv1.weight,
-        #                         mode='fan_out', nonlinearity='relu')
-
         self.features = self.features_extractor.avgpool
         self.features.register_forward_hook(save_hook)
         self.downsample = downsample
