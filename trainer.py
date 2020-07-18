@@ -36,7 +36,7 @@ class Params(object):
         self.shift_distribution = ShiftDistribution.UNIFORM
 
         self.deformator_lr = 0.0001
-        self.predictor_lr = 0.0002
+        self.predictor_lr = 0.0001
 
         self.label_weight = 1.0
         self.shift_weight = 0.25
@@ -54,7 +54,7 @@ class Params(object):
         self.steps_per_img_log = 2000
         self.steps_per_backup = 2000
 
-        self.max_latent_ind = 120
+        self.max_latent_ind = 256
         self.efros_threshold = 0.1
 
         for key, val in kwargs.items():
