@@ -226,21 +226,22 @@ class Trainer(object):
                     z_shift[i] += self.p.shift_scale
                     z_shifted[i] = z[i] + z_shift
 
-                fig, axes = plt.subplots(self.p.max_latent_ind, 2, figsize=(20, 10*self.p.max_latent_ind))
-                for dir_id in range(self.p.max_latent_ind):
-                    with torch.no_grad():
-                        img = G([z[dir_id][None]])[0]
-                        img_shifted = G([z_shifted[dir_id][None]])[0]
+                fig, axes = plt.subplots(self.p.max_latent_ind, 8, figsize=(20, 10 * self.p.max_latent_ind // 4))
+                for dir_id in range(0, self.p.max_latent_ind, 4):
+                    for i in range(4):
+                        with torch.no_grad():
+                            img = G([z[dir_id + i][None]])[0]
+                            img_shifted = G([z_shifted[dir_id + i][None]])[0]
 
-                    img = to_image(img.cpu().clamp(-1, 1))
-                    axes[i, 0].imshow(img)
-                    axes[i, 0].axis('off')
-                    axes[i, 0].set_title(f"Image | Dim {dir_id}")
+                        img = to_image(img.cpu().clamp(-1, 1))
+                        axes[i, 2*i].imshow(img)
+                        axes[i, 2*i].axis('off')
+                        axes[i, 2*i].set_title(f"Image | Dim {dir_id}")
 
-                    img_shifted = to_image(img_shifted.cpu().clamp(-1, 1))
-                    axes[i, 1].imshow(img_shifted)
-                    axes[i, 1].axis('off')
-                    axes[i, 1].set_title(f"Shifted image | Dim {dir_id}")
+                        img_shifted = to_image(img_shifted.cpu().clamp(-1, 1))
+                        axes[i, 2*i + 1].imshow(img_shifted)
+                        axes[i, 2*i + 1].axis('off')
+                        axes[i, 2*i + 1].set_title(f"Shifted image | Dim {dir_id}")
 
                 fig_to_image(fig).save(os.path.join(self.out_dir, f"step{step}.png"))
                 plt.close(fig)
