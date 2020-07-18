@@ -234,14 +234,14 @@ class Trainer(object):
                             img_shifted = G([z_shifted[dir_id + i][None]])[0]
 
                         img = to_image(img.cpu().clamp(-1, 1))
-                        axes[dir_id, 2*i].imshow(img)
-                        axes[dir_id, 2*i].axis('off')
-                        axes[dir_id, 2*i].set_title(f"Orig | Dim {dir_id}")
+                        axes[dir_id // 4, 2*i].imshow(img)
+                        axes[dir_id // 4, 2*i].axis('off')
+                        axes[dir_id // 4, 2*i].set_title(f"Orig | Dim {dir_id}")
 
                         img_shifted = to_image(img_shifted.cpu().clamp(-1, 1))
-                        axes[dir_id, 2*i + 1].imshow(img_shifted)
-                        axes[dir_id, 2*i + 1].axis('off')
-                        axes[dir_id, 2*i + 1].set_title(f"Shifted | Dim {dir_id}")
+                        axes[dir_id // 4, 2*i + 1].imshow(img_shifted)
+                        axes[dir_id // 4, 2*i + 1].axis('off')
+                        axes[dir_id // 4, 2*i + 1].set_title(f"Shifted | Dim {dir_id}")
 
                 fig_to_image(fig).save(os.path.join(self.out_dir, f"step{step}.png"))
                 plt.close(fig)
