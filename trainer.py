@@ -159,7 +159,10 @@ class Trainer(object):
                 z = make_noise(self.p.batch_size, G.dim_z).cuda()
                 while True:
                     imgs = G([z])[0]
-                    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                    mean = torch.tensor([0.485, 0.456, 0.406])[None, :, None, None]
+                    std = torch.tensor([0.229, 0.224, 0.225])[None, :, None, None]
+
+                    normalize = lambda x: (x - mean) / std
                     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
                     scores = efros_model(normalized_imgs).view(-1)
                     print(scores, scores.shape)
