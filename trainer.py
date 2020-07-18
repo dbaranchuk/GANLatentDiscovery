@@ -38,8 +38,8 @@ class Params(object):
         self.deformator_lr = 0.0001
         self.predictor_lr = 0.0002
 
-        self.label_weight = 2.0
-        self.shift_weight = 0.5
+        self.label_weight = 1.0
+        self.shift_weight = 0.25
         self.deformation_loss_weight = 2.0
 
         self.n_steps = 50000 + 1
@@ -81,7 +81,7 @@ class Trainer(object):
 
     def make_shifts(self, latent_dim, target_indices=None):
         if target_indices is None:
-            target_indices = torch.randint(0, self.p.max_latent_ind // 4, [self.p.batch_size], device='cuda')
+            target_indices = torch.randint(0, self.p.max_latent_ind, [self.p.batch_size], device='cuda')
         if self.p.shift_distribution == ShiftDistribution.NORMAL:
             shifts =  torch.randn(target_indices.shape, device='cuda')
         elif self.p.shift_distribution == ShiftDistribution.UNIFORM:
@@ -95,7 +95,8 @@ class Trainer(object):
             latent_dim = [latent_dim]
         z_shift = torch.zeros([self.p.batch_size] + latent_dim, device='cuda')
         for i, (index, val) in enumerate(zip(target_indices, shifts)):
-            z_shift[i][4*index: 4*(index + 1)] += val
+            #z_shift[i][4*index:4*(index+1)] += val
+            z_shift[i][index] += val
 
         return target_indices, shifts, z_shift
 
@@ -161,12 +162,11 @@ class Trainer(object):
 
             with torch.no_grad():
                 z = make_noise(self.p.batch_size, G.dim_z).cuda()
-                for i in range(10):
+                for _ in range(5):
                     imgs = G([z])[0]
                     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
                     scores = torch.sigmoid(efros_model(normalized_imgs).view(-1))
                     if (scores < self.p.efros_threshold).all():
-                        print(i)
                         break
                     z[scores > self.p.efros_threshold] = make_noise(len(z[scores > self.p.efros_threshold]), G.dim_z).cuda()
 

@@ -56,6 +56,7 @@ def main():
     parser.add_argument('--deformator_random_init', type=bool, default=False)
 
     parser.add_argument('--predictor_size', type=int, default=224)
+    parser.add_argument('--max_latent_ind', type=int, default=512)
     parser.add_argument('--predictor', type=str,
                         choices=['ResNet', 'LeNet'], default='ResNet')
     parser.add_argument('--distribution_key', type=str,
