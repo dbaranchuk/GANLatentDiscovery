@@ -41,7 +41,7 @@ from constants import DEFORMATOR_TYPE_DICT, DEFORMATOR_LOSS_DICT, SHIFT_DISTRIDU
 def main():
     parser = argparse.ArgumentParser(description='Latent space rectification')
     for key, val in Params().__dict__.items():
-        parser.add_argument('--{}'.format(key), type=type(val), default=None)
+        parser.add_argument('--{}'.format(key), type=type(val), default=val)
 
     parser.add_argument('--args', type=str, default=None, help='json with all arguments')
     parser.add_argument('--out', type=str, required=True)
