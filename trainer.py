@@ -55,6 +55,7 @@ class Params(object):
         self.steps_per_backup = 2000
 
         self.max_latent_ind = 512
+        self.efros_threshold = 0.1
 
         for key, val in kwargs.items():
             if val is not None:
@@ -139,7 +140,7 @@ class Trainer(object):
         torch.save(predictor.state_dict(),
                    os.path.join(self.models_dir, 'predictor_{}.pt'.format(step)))
 
-    def train(self, G, deformator, predictor, efros_model, nception=None):
+    def train(self, G, deformator, predictor, efros_model, inception=None):
         G.cuda().eval()
         efros_model.cuda().eval()
         deformator.cuda().train()
@@ -151,22 +152,20 @@ class Trainer(object):
 
         recovered_step = self.start_from_checkpoint(deformator, predictor)
         for step in range(recovered_step, self.p.n_steps, 1):
-            G.zero_grad()
             deformator.zero_grad()
             predictor.zero_grad()
 
             with torch.no_grad():
                 z = make_noise(self.p.batch_size, G.dim_z).cuda()
-                threshold = 0.5
                 while True:
                     imgs = G([z])[0]
                     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
-                    scores = efros_model(normalized_imgs)
+                    scores = efros_model(normalized_imgs).view(-1)
                     print(scores, scores.shape)
-                    if (scores < threshold).all():
+                    if (scores < self.p.efros_threshold).all():
                         break
-                    z[scores > threshold] = make_noise(len(z[scores > threshold]), G.dim_z).cuda()
+                    z[scores > self.p.efros_threshold] = make_noise(len(z[scores > self.p.efros_threshold]), G.dim_z).cuda()
 
             z_orig = torch.clone(z)
             target_indices, shifts, z_shift = self.make_shifts(G.dim_z)
