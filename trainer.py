@@ -219,17 +219,28 @@ class Trainer(object):
                 self.save_checkpoint(deformator, predictor, step)
 
             if step % self.p.steps_per_img_log == 0:
-                fig, axes = plt.subplots(self.p.batch_size, 2, figsize=(20, 240))
-                for i , (img, img_shifted) in enumerate(zip(imgs, imgs_shifted)):
-                    img = to_image(img.detach().cpu().clamp(-1, 1))
+                z = make_noise(self.p.max_latent_ind, G.dim_z).cuda()
+                z_shifted = torch.zeros([self.p.max_latent_ind] + [G.dim_z], device='cuda')
+                for i in range(self.p.max_latent_ind):
+                    z_shift = torch.zeros(G.dim_z)
+                    z_shift[i] += self.p.shift_scale
+                    z_shifted[i] = z[i] + z_shift
+
+                fig, axes = plt.subplots(self.p.batch_size, 2, figsize=(20, 10*self.p.max_latent_ind))
+                for dir_id in range(self.p.max_latent_ind):
+                    with torch.no_grad():
+                        img = G([z[dir_id][None]])[0]
+                        img_shifted = G([z_shifted[dir_id][None]])[0]
+
+                    img = to_image(img.cpu().clamp(-1, 1))
                     axes[i, 0].imshow(img)
                     axes[i, 0].axis('off')
-                    axes[i, 0].set_title(f"Image | Dim {target_indices[i].item()}")
+                    axes[i, 0].set_title(f"Image | Dim {dir_id}")
 
-                    img_shifted = to_image(img_shifted.detach().cpu().clamp(-1, 1))
+                    img_shifted = to_image(img_shifted.cpu().clamp(-1, 1))
                     axes[i, 1].imshow(img_shifted)
                     axes[i, 1].axis('off')
-                    axes[i, 1].set_title(f"Shifted image | Dim {target_indices[i].item()}")
+                    axes[i, 1].set_title(f"Shifted image | Dim {dir_id}")
 
                 fig_to_image(fig).save(os.path.join(self.out_dir, f"step{step}.png"))
                 plt.close(fig)
