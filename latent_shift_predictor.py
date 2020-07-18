@@ -31,9 +31,9 @@ class ResNetPredictor(nn.Module):
         if self.downsample is not None:
             x1, x2 = F.interpolate(x1, self.downsample), F.interpolate(x2, self.downsample)
 
-        self.features_extractor(x1, dim=1)
+        self.features_extractor(x1)
         features1 = self.features.output.view([batch_size, -1])
-        self.features_extractor(x2, dim=1)
+        self.features_extractor(x2)
         features2 = self.features.output.view([batch_size, -1])
 
         features = features1 + features2
