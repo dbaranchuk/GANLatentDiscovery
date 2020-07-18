@@ -146,6 +146,10 @@ class Trainer(object):
         deformator.cuda().train()
         predictor.cuda().train()
 
+        mean = torch.tensor([0.485, 0.456, 0.406])[None, :, None, None].cuda()
+        std = torch.tensor([0.229, 0.224, 0.225])[None, :, None, None].cuda()
+        normalize = lambda x: (x - mean) / std
+
         deformator_opt = torch.optim.Adam(deformator.parameters(), lr=self.p.deformator_lr) \
             if deformator.type not in [DeformatorType.ID, DeformatorType.RANDOM] else None
         shift_predictor_opt = torch.optim.Adam(predictor.parameters(), lr=self.p.predictor_lr)
@@ -157,15 +161,12 @@ class Trainer(object):
 
             with torch.no_grad():
                 z = make_noise(self.p.batch_size, G.dim_z).cuda()
-                while True:
+                for i in range(10):
                     imgs = G([z])[0]
-                    mean = torch.tensor([0.485, 0.456, 0.406])[None, :, None, None].cuda()
-                    std = torch.tensor([0.229, 0.224, 0.225])[None, :, None, None].cuda()
-
-                    normalize = lambda x: (x - mean) / std
                     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
                     scores = torch.sigmoid(efros_model(normalized_imgs).view(-1))
                     if (scores < self.p.efros_threshold).all():
+                        print(i)
                         break
                     z[scores > self.p.efros_threshold] = make_noise(len(z[scores > self.p.efros_threshold]), G.dim_z).cuda()
 

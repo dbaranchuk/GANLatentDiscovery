@@ -115,7 +115,7 @@ def main():
     from torchvision import transforms
 
     efros_model = resnet50(num_classes=1)
-    state_dict = torch.load('efros_weights/blur_jpg_prob0.1.pth', map_location='cpu')
+    state_dict = torch.load('efros_weights/blur_jpg_prob0.5.pth', map_location='cpu')
     efros_model.load_state_dict(state_dict['model'])
     efros_model.cuda().eval()
     for param in efros_model.parameters():
