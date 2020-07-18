@@ -205,7 +205,7 @@ class Trainer(object):
                 self.save_checkpoint(deformator, predictor, step)
 
             if step % self.p.steps_per_img_log == 0:
-                fig, axes = plt.subplots(self.p.batch_size, 2, figsize=(20, 40))
+                fig, axes = plt.subplots(self.p.batch_size, 2, figsize=(20, 240))
                 for i , (img, img_shifted) in enumerate(zip(imgs, imgs_shifted)):
                     img = to_image(img.detach().cpu().clamp(-1, 1))
                     axes[i, 0].imshow(img)

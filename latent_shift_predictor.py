@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torchvision.models import resnet34
+from torchvision.models import resnet34, resnet50
 import numpy as np
 
 
@@ -12,7 +12,7 @@ def save_hook(module, input, output):
 class ResNetPredictor(nn.Module):
     def __init__(self, dim, downsample=None):
         super(ResNetPredictor, self).__init__()
-        self.features_extractor = resnet34(pretrained=False)
+        self.features_extractor = resnet50(pretrained=False)
         self.features_extractor.conv1 = nn.Conv2d(
             6, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         nn.init.kaiming_normal_(self.features_extractor.conv1.weight,
