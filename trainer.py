@@ -79,7 +79,7 @@ class Trainer(object):
 
     def make_shifts(self, latent_dim, target_indices=None):
         if target_indices is None:
-            target_indices = torch.randint(0, self.p.max_latent_ind, [self.p.batch_size], device='cuda')
+            target_indices = torch.randint(0, self.p.max_latent_ind // 4, [self.p.batch_size], device='cuda')
         if self.p.shift_distribution == ShiftDistribution.NORMAL:
             shifts =  torch.randn(target_indices.shape, device='cuda')
         elif self.p.shift_distribution == ShiftDistribution.UNIFORM:
@@ -93,7 +93,7 @@ class Trainer(object):
             latent_dim = [latent_dim]
         z_shift = torch.zeros([self.p.batch_size] + latent_dim, device='cuda')
         for i, (index, val) in enumerate(zip(target_indices, shifts)):
-            z_shift[i][index] += val
+            z_shift[i][4*index: 4*(index + 1)] += val
 
         return target_indices, shifts, z_shift
 

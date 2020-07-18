@@ -23,7 +23,7 @@ class ResNetPredictor(nn.Module):
         self.downsample = downsample
 
         # half dimension as we expect the model to be symmetric
-        self.type_estimator = nn.Linear(self.features_extractor.fc.weight.shape[1], np.product(dim))
+        self.type_estimator = nn.Linear(self.features_extractor.fc.weight.shape[1], np.product(dim) // 4)
         self.shift_estimator = nn.Linear(self.features_extractor.fc.weight.shape[1], 1)
 
     def forward(self, x1, x2):
