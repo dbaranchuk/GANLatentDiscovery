@@ -222,7 +222,7 @@ class Trainer(object):
                 z = make_noise(self.p.max_latent_ind, G.dim_z).cuda()
                 z_shifted = torch.zeros([self.p.max_latent_ind] + [G.dim_z], device='cuda')
                 for i in range(self.p.max_latent_ind):
-                    z_shift = torch.zeros(G.dim_z)
+                    z_shift = torch.zeros(G.dim_z, device='cuda')
                     z_shift[i] += self.p.shift_scale
                     z_shifted[i] = z[i] + z_shift
 
