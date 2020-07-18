@@ -163,7 +163,7 @@ class Trainer(object):
             with torch.no_grad():
                 z = make_noise(self.p.batch_size, G.dim_z).cuda()
                 for _ in range(5):
-                    imgs = G([z])[0]
+                    imgs = G([z])[0].clamp(-1, 1)
                     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
                     scores = torch.sigmoid(efros_model(normalized_imgs).view(-1))
                     if (scores < self.p.efros_threshold).all():
@@ -180,7 +180,7 @@ class Trainer(object):
             else:
                 z_shifted = z + deformator(z_shift)
 
-            imgs_shifted = G([z_shifted])[0]
+            imgs_shifted = G([z_shifted])[0].clamp(-1, 1)
             logits, shift_predictions = predictor(imgs, imgs_shifted)
             logit_loss = self.p.label_weight * self.cross_entropy(logits, target_indices)
             shift_loss = self.p.shift_weight * torch.mean(torch.abs(shift_predictions - shifts))
