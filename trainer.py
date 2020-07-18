@@ -54,7 +54,7 @@ class Params(object):
         self.steps_per_img_log = 2000
         self.steps_per_backup = 2000
 
-        self.max_latent_ind = 512
+        self.max_latent_ind = 120
         self.efros_threshold = 0.1
 
         for key, val in kwargs.items():
