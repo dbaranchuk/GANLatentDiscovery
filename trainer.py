@@ -159,8 +159,8 @@ class Trainer(object):
                 z = make_noise(self.p.batch_size, G.dim_z).cuda()
                 while True:
                     imgs = G([z])[0]
-                    mean = torch.tensor([0.485, 0.456, 0.406])[None, :, None, None]
-                    std = torch.tensor([0.229, 0.224, 0.225])[None, :, None, None]
+                    mean = torch.tensor([0.485, 0.456, 0.406])[None, :, None, None].cuda()
+                    std = torch.tensor([0.229, 0.224, 0.225])[None, :, None, None].cuda()
 
                     normalize = lambda x: (x - mean) / std
                     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
