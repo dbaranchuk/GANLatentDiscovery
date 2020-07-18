@@ -164,8 +164,7 @@ class Trainer(object):
 
                     normalize = lambda x: (x - mean) / std
                     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
-                    scores = efros_model(normalized_imgs).view(-1)
-                    print(scores, scores.shape)
+                    scores = torch.sigmoid(efros_model(normalized_imgs).view(-1))
                     if (scores < self.p.efros_threshold).all():
                         break
                     z[scores > self.p.efros_threshold] = make_noise(len(z[scores > self.p.efros_threshold]), G.dim_z).cuda()
