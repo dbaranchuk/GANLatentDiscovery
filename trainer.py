@@ -10,6 +10,7 @@ from torchvision.transforms import Compose, ToTensor, Resize, CenterCrop, Normal
 from visualization import fig_to_image
 from torch_tools.visualization import to_image
 
+from torchvision import transforms
 from latent_deformator import DeformatorType, normal_projection_stat
 from enum import Enum
 
@@ -138,8 +139,9 @@ class Trainer(object):
         torch.save(predictor.state_dict(),
                    os.path.join(self.models_dir, 'predictor_{}.pt'.format(step)))
 
-    def train(self, G, deformator, predictor, inception=None):
+    def train(self, G, deformator, predictor, efros_model, nception=None):
         G.cuda().eval()
+        efros_model.cuda().eval()
         deformator.cuda().train()
         predictor.cuda().train()
 
@@ -153,7 +155,19 @@ class Trainer(object):
             deformator.zero_grad()
             predictor.zero_grad()
 
-            z = make_noise(self.p.batch_size, G.dim_z).cuda()
+            with torch.no_grad():
+                z = make_noise(self.p.batch_size, G.dim_z).cuda()
+                threshold = 0.5
+                while True:
+                    imgs = G([z])[0]
+                    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                    normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
+                    scores = efros_model(normalized_imgs)
+                    print(scores, scores.shape)
+                    if (scores < threshold).all():
+                        break
+                    z[scores > threshold] = make_noise(len(z[scores > threshold]), G.dim_z).cuda()
+
             z_orig = torch.clone(z)
             target_indices, shifts, z_shift = self.make_shifts(G.dim_z)
 
@@ -164,9 +178,7 @@ class Trainer(object):
             else:
                 z_shifted = z + deformator(z_shift)
 
-            imgs = G([z])[0]
             imgs_shifted = G([z_shifted])[0]
-
             logits, shift_predictions = predictor(imgs, imgs_shifted)
             logit_loss = self.p.label_weight * self.cross_entropy(logits, target_indices)
             shift_loss = self.p.shift_weight * torch.mean(torch.abs(shift_predictions - shifts))

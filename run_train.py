@@ -111,12 +111,22 @@ def main():
     # inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
     # inception.fc = torch.nn.Identity()
 
+    from efros_networks.resnet import resnet50
+    from torchvision import transforms
+
+    efros_model = resnet50(num_classes=1)
+    state_dict = torch.load('efros_weights/blur_jpg_prob0.1.pth', map_location='cpu')
+    efros_model.load_state_dict(state_dict['model'])
+    efros_model.cuda().eval()
+    for param in efros_model.parameters():
+        param.requires_grad = False
+
     # training
     print("Start training...")
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
 
     if args.mode == 'train':
-        trainer.train(G, deformator, predictor)
+        trainer.train(G, deformator, predictor, efros_model)
 
 
 if __name__ == '__main__':
