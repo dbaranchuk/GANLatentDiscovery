@@ -164,7 +164,8 @@ class Trainer(object):
 
             with torch.no_grad():
                 z = make_noise(self.p.batch_size, G.dim_z).cuda()
-                imgs = G([z])[0]#.clamp(-1, 1)
+                w = G.style(z)
+                imgs = G([w], input_is_latent=True)[0]#.clamp(-1, 1)
                 # for _ in range(0):
                 #     imgs = G([z])[0].clamp(-1, 1)
                 #     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
@@ -177,7 +178,7 @@ class Trainer(object):
             target_indices, shifts, basis_shift = self.make_shifts(G.dim_z)
             shift = deformator(basis_shift)
 
-            imgs_shifted = G([z + shift])[0]#.clamp(-1, 1)
+            imgs_shifted = G([w + shift], input_is_latent=True)[0]#.clamp(-1, 1)
             logits, shift_predictions = predictor(imgs, imgs_shifted)
             logit_loss = self.p.label_weight * self.cross_entropy(logits, target_indices)
             shift_loss = self.p.shift_weight * torch.mean(torch.abs(shift_predictions - shifts))
