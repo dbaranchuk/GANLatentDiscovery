@@ -43,7 +43,7 @@ class ResNetPredictor(nn.Module):
         super(ResNetPredictor, self).__init__()
         self.features_extractor = resnet50(pretrained=False)
         self.features_extractor.conv1 = nn.Conv2d(
-            6, 64,kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+            6, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         nn.init.kaiming_normal_(self.features_extractor.conv1.weight,
                                 mode='fan_out', nonlinearity='relu')
 

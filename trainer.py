@@ -45,6 +45,7 @@ class Params(object):
         self.n_steps = 50000 + 1
         self.batch_size = 12
 
+        self.deformation_loss_weight = 2.0
         self.z_norm_loss_low_bound = 1.1
         self.z_mean_weight = 200.0
         self.z_std_weight = 200.0
@@ -54,7 +55,7 @@ class Params(object):
         self.steps_per_img_log = 2000
         self.steps_per_backup = 2000
 
-        self.max_latent_ind = 128
+        self.max_latent_ind = 120
         self.efros_threshold = 0.1
 
         for key, val in kwargs.items():
@@ -141,15 +142,16 @@ class Trainer(object):
         torch.save(predictor.state_dict(),
                    os.path.join(self.models_dir, 'predictor_{}.pt'.format(step)))
 
-    def train(self, G, deformator, predictor, efros_model, inception=None):
+    def train(self, G, deformator, predictor, efros_model=None, inception=None):
         G.cuda().eval()
-        efros_model.cuda().eval()
         deformator.cuda().train()
         predictor.cuda().train()
 
-        mean = torch.tensor([0.485, 0.456, 0.406])[None, :, None, None].cuda()
-        std = torch.tensor([0.229, 0.224, 0.225])[None, :, None, None].cuda()
-        normalize = lambda x: (x - mean) / std
+        if efros_model is not None:
+            efros_model.cuda().eval()
+            mean = torch.tensor([0.485, 0.456, 0.406])[None, :, None, None].cuda()
+            std = torch.tensor([0.229, 0.224, 0.225])[None, :, None, None].cuda()
+            normalize = lambda x: (x - mean) / std
 
         deformator_opt = torch.optim.Adam(deformator.parameters(), lr=self.p.deformator_lr) \
             if deformator.type not in [DeformatorType.ID, DeformatorType.RANDOM] else None
@@ -162,45 +164,34 @@ class Trainer(object):
 
             with torch.no_grad():
                 z = make_noise(self.p.batch_size, G.dim_z).cuda()
-                for _ in range(5):
-                    imgs = G([z])[0].clamp(-1, 1)
-                    normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
-                    scores = torch.sigmoid(efros_model(normalized_imgs).view(-1))
-                    if (scores < self.p.efros_threshold).all():
-                        break
-                    z[scores > self.p.efros_threshold] = make_noise(len(z[scores > self.p.efros_threshold]), G.dim_z).cuda()
+                imgs = G([z])[0]#.clamp(-1, 1)
+                # for _ in range(0):
+                #     imgs = G([z])[0].clamp(-1, 1)
+                #     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
+                #     scores = torch.sigmoid(efros_model(normalized_imgs).view(-1))
+                #     if (scores < self.p.efros_threshold).all():
+                #         break
+                #     z[scores > self.p.efros_threshold] = make_noise(len(z[scores > self.p.efros_threshold]), G.dim_z).cuda()
 
-            z_orig = torch.clone(z)
-            target_indices, shifts, z_shift = self.make_shifts(G.dim_z)
+            # z_orig = torch.clone(z)
+            target_indices, shifts, basis_shift = self.make_shifts(G.dim_z)
+            shift = deformator(basis_shift)
 
-            # Deformation
-            if self.p.global_deformation:
-                z_shifted = deformator(z + z_shift)
-                z = deformator(z)
-            else:
-                z_shifted = z + deformator(z_shift)
-
-            imgs_shifted = G([z_shifted])[0].clamp(-1, 1)
+            imgs_shifted = G([z + shift])[0]#.clamp(-1, 1)
             logits, shift_predictions = predictor(imgs, imgs_shifted)
             logit_loss = self.p.label_weight * self.cross_entropy(logits, target_indices)
             shift_loss = self.p.shift_weight * torch.mean(torch.abs(shift_predictions - shifts))
 
-            # Loss
             # deformator penalty
             if self.p.deformation_loss == DeformatorLoss.STAT:
-                z_std, z_mean = normal_projection_stat(z)
+                z_std, z_mean = normal_projection_stat(z + shift)
                 z_loss = self.p.z_mean_weight * torch.abs(z_mean) + \
                          self.p.z_std_weight * torch.abs(1.0 - z_std)
 
-            elif self.p.deformation_loss == DeformatorLoss.L2:
-                z_loss = self.p.deformation_loss_weight * torch.mean(torch.norm(z, dim=1))
-                if z_loss < self.p.z_norm_loss_low_bound * torch.mean(torch.norm(z_orig, dim=1)):
-                    z_loss = torch.tensor([0.0], device='cuda')
-
             elif self.p.deformation_loss == DeformatorLoss.RELATIVE:
-                deformation_norm = torch.norm(z - z_shifted, dim=1)
-                z_loss = self.p.deformation_loss_weight * torch.mean(torch.abs(deformation_norm - shifts))
-
+                deformation_norm = torch.norm(shift, dim=1)
+                z_loss = self.p.deformation_loss_weight * \
+                         torch.mean(torch.abs(deformation_norm - shifts))
             else:
                 z_loss = torch.tensor([0.0], device='cuda')
 
@@ -237,12 +228,12 @@ class Trainer(object):
                         img = to_image(img.cpu().clamp(-1, 1))
                         axes[dir_id // 4, 2*i].imshow(img)
                         axes[dir_id // 4, 2*i].axis('off')
-                        axes[dir_id // 4, 2*i].set_title(f"Orig | Dim {dir_id}")
+                        axes[dir_id // 4, 2*i].set_title(f"Orig | Dim {dir_id + i}")
 
                         img_shifted = to_image(img_shifted.cpu().clamp(-1, 1))
                         axes[dir_id // 4, 2*i + 1].imshow(img_shifted)
                         axes[dir_id // 4, 2*i + 1].axis('off')
-                        axes[dir_id // 4, 2*i + 1].set_title(f"Shifted | Dim {dir_id}")
+                        axes[dir_id // 4, 2*i + 1].set_title(f"Shifted | Dim {dir_id + i}")
 
                 fig_to_image(fig).save(os.path.join(self.out_dir, f"step{step}.png"))
                 plt.close(fig)

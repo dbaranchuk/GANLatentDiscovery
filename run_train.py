@@ -115,22 +115,29 @@ def main():
         predictor = SiameseResNetPredictor(args.max_latent_ind, args.predictor_size).cuda()
     else:
         raise Exception("Unknown predictor type")
-    # inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
-    # inception.fc = torch.nn.Identity()
 
-    efros_model = efros_resnet50(num_classes=1)
-    state_dict = torch.load('efros_weights/blur_jpg_prob0.5.pth', map_location='cpu')
-    efros_model.load_state_dict(state_dict['model'])
-    efros_model.cuda().eval()
-    for param in efros_model.parameters():
-        param.requires_grad = False
+    if False:
+        inception = inception_v3(num_classes=1000, aux_logits=False, pretrained=True).cuda().eval()
+        inception.fc = torch.nn.Identity()
+    else:
+        inception = None
+
+    if False:
+        efros_model = efros_resnet50(num_classes=1)
+        state_dict = torch.load('efros_weights/blur_jpg_prob0.5.pth', map_location='cpu')
+        efros_model.load_state_dict(state_dict['model'])
+        efros_model.cuda().eval()
+        for param in efros_model.parameters():
+            param.requires_grad = False
+    else:
+        efros_model = None
 
     # training
     print("Start training...")
     trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
 
     if args.mode == 'train':
-        trainer.train(G, deformator, predictor, efros_model)
+        trainer.train(G, deformator, predictor, efros_model, inception)
 
 
 if __name__ == '__main__':
