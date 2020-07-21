@@ -131,7 +131,8 @@ def main():
 
     # training
     print("Start training...")
-    trainer = Trainer(params=Params(**args.__dict__), out_dir=args.out)
+    params = Params(**args.__dict__)
+    trainer = Trainer(params=params, out_dir=args.out)
 
     if args.mode == 'train':
         trainer.train(G, deformator, predictor, efros_model, inception)
