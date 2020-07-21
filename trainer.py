@@ -254,8 +254,8 @@ def validate_classifier(G, deformator, shift_predictor, params_dict=None, traine
         w = G.style(z)
         target_indices, shifts, basis_shift = trainer.make_shifts(G.dim_z)
 
-        imgs = G([w])
-        imgs_shifted = G([w + deformator(basis_shift)])
+        imgs = G([w])[0]
+        imgs_shifted = G([w + deformator(basis_shift)])[0]
 
         logits, _ = shift_predictor(imgs, imgs_shifted)
         percents[step] = (torch.argmax(logits, dim=1) == target_indices).to(torch.float32).mean()
