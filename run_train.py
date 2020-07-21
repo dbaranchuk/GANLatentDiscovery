@@ -19,24 +19,21 @@ from lib.gan_model.model import Generator
 from latent_deformator import LatentDeformator
 from latent_shift_predictor import ResNetPredictor, SiameseResNetPredictor
 from constants import DEFORMATOR_TYPE_DICT, DEFORMATOR_LOSS_DICT, SHIFT_DISTRIDUTION_DICT, WEIGHTS
+from visualization import inspect_all_directions
+from utils import make_noise
 
 
-##################################################
-# import signal
-#
-# #Close session
-# def handler(signum, frame):
-#     raise Exception('Action took too much time')
-#
-# signal.signal(signal.SIGALRM, handler)
-# signal.alarm(3)
-#
-# try:
-#     from lib.gan_model.model import Generator
-# except:
-#     from lib.gan_model.model import Generator
-# signal.alarm(0)
-################################################
+def save_results_charts(G, deformator, params, out_dir):
+    deformator.eval()
+    G.eval()
+    z = make_noise(3, G.dim_z, params.truncation).cuda()
+    inspect_all_directions(
+        G, deformator, os.path.join(out_dir, 'charts_s{}'.format(int(params.shift_scale))),
+        zs=z, shifts_r=params.shift_scale)
+    inspect_all_directions(
+        G, deformator, os.path.join(out_dir, 'charts_s{}'.format(int(3 * params.shift_scale))),
+        zs=z, shifts_r=3 * params.shift_scale)
+
 
 def main():
     parser = argparse.ArgumentParser(description='Latent space rectification')
@@ -98,7 +95,7 @@ def main():
         pretrained_model = torch.load(weights_path)
         G = Generator(256, 512, 8, channel_multiplier=2)
         G.load_state_dict(pretrained_model['g_ema'], strict=False)
-        G.train(False)
+        G.eval()
         G.dim_z = G.style_dim
         for param in G.parameters():
             param.requires_grad = False
@@ -138,6 +135,12 @@ def main():
 
     if args.mode == 'train':
         trainer.train(G, deformator, predictor, efros_model, inception)
+    elif args.mode == 'eval':
+        predictor.eval()
+        deformator.eval()
+        precision = validate_classifier(G, deformator, predictor, params_dict=params, trainer=trainer)
+        print(f"Precision: {precision:.3}")
+    save_results_charts(G, deformator, params, trainer.out_dir)
 
 
 if __name__ == '__main__':

@@ -31,7 +31,7 @@ class Params(object):
     def __init__(self, **kwargs):
         self.global_deformation = False
         self.deformation_loss = DeformatorLoss.NONE
-        self.shift_scale = 6.0
+        self.shift_scale = 8.0
         self.min_shift = 0.5
         self.shift_distribution = ShiftDistribution.UNIFORM
 
@@ -57,6 +57,7 @@ class Params(object):
 
         self.max_latent_ind = 120
         self.efros_threshold = 0.1
+        self.truncation = 1.0
 
         for key, val in kwargs.items():
             if val is not None:
@@ -77,8 +78,8 @@ class Trainer(object):
         self.cross_entropy = nn.CrossEntropyLoss()
         self.checkpoint = os.path.join(out_dir, 'checkpoint.pt')
 
-    def log(self, step, logit_loss, shift_loss, z_loss, loss):
-            print(f'Step {step} | {logit_loss:.3} | {shift_loss:.3} | {z_loss.item():.3} | Loss: {loss.item():.3}')
+    def log(self, step, logit_loss, shift_loss, z_loss, loss, precision):
+            print(f'Step {step} | {logit_loss:.3} | {shift_loss:.3} | Loss: {loss.item():.3} | Precision: {precision:.3}')
 
     def make_shifts(self, latent_dim, target_indices=None):
         if target_indices is None:
@@ -174,7 +175,6 @@ class Trainer(object):
                 #         break
                 #     z[scores > self.p.efros_threshold] = make_noise(len(z[scores > self.p.efros_threshold]), G.dim_z).cuda()
 
-            # z_orig = torch.clone(z)
             target_indices, shifts, basis_shift = self.make_shifts(G.dim_z)
             shift = deformator(basis_shift)
 
@@ -205,7 +205,9 @@ class Trainer(object):
             shift_predictor_opt.step()
 
             if step % self.p.steps_per_log == 0:
-                self.log(step, logit_loss, shift_loss, z_loss, loss)
+                precision = torch.mean(
+                    (torch.argmax(logits, dim=1) == target_indices).to(torch.float32)).detach()
+                self.log(step, logit_loss, shift_loss, z_loss, loss, precision)
 
             if step % self.p.steps_per_save == 0:
                 self.save_checkpoint(deformator, predictor, step)
@@ -239,3 +241,23 @@ class Trainer(object):
                 fig_to_image(fig).save(os.path.join(self.out_dir, f"step{step}.png"))
                 plt.close(fig)
 
+
+@torch.no_grad()
+def validate_classifier(G, deformator, shift_predictor, params_dict=None, trainer=None):
+    n_steps = 100
+    if trainer is None:
+        trainer = Trainer(params=Params(**params_dict), verbose=False)
+
+    percents = torch.empty([n_steps])
+    for step in range(n_steps):
+        z = make_noise(trainer.p.batch_size, G.dim_z, trainer.p.truncation).cuda()
+        w = G.style(z)
+        target_indices, shifts, basis_shift = trainer.make_shifts(G.dim_shift)
+
+        imgs = G([w])
+        imgs_shifted = G([w + deformator(basis_shift)])
+
+        logits, _ = shift_predictor(imgs, imgs_shifted)
+        percents[step] = (torch.argmax(logits, dim=1) == target_indices).to(torch.float32).mean()
+
+    return percents.mean()
