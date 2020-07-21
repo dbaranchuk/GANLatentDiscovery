@@ -134,13 +134,11 @@ def main():
     params = Params(**args.__dict__)
     trainer = Trainer(params=params, out_dir=args.out)
 
-    if args.mode == 'train':
-        trainer.train(G, deformator, predictor, efros_model, inception)
-    elif args.mode == 'eval':
-        predictor.eval()
-        deformator.eval()
-        precision = validate_classifier(G, deformator, predictor, params_dict=params, trainer=trainer)
-        print(f"Precision: {precision:.3}")
+    trainer.train(G, deformator, predictor, efros_model, inception)
+    predictor.eval()
+    deformator.eval()
+    precision = validate_classifier(G, deformator, predictor, params_dict=params, trainer=trainer)
+    print(f"Precision: {precision:.3}")
     save_results_charts(G, deformator, params, trainer.out_dir)
 
 
