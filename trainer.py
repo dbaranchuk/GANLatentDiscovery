@@ -243,7 +243,7 @@ class Trainer(object):
 
 
 @torch.no_grad()
-def validate_classifier(G, deformator, shift_predictor, params_dict=None, trainer=None):
+def validate_classifier(G, deformator, predictor, params_dict=None, trainer=None):
     n_steps = 100
     if trainer is None:
         trainer = Trainer(params=Params(**params_dict), verbose=False)
@@ -254,10 +254,10 @@ def validate_classifier(G, deformator, shift_predictor, params_dict=None, traine
         w = G.style(z)
         target_indices, shifts, basis_shift = trainer.make_shifts(G.dim_z)
 
-        imgs = G([w])[0]
-        imgs_shifted = G([w + deformator(basis_shift)])[0]
+        imgs = G([w], input_is_latent=True)[0]
+        imgs_shifted = G([w + deformator(basis_shift)], input_is_latent=True)[0]
 
-        logits, _ = shift_predictor(imgs, imgs_shifted)
+        logits, _ = predictor(imgs, imgs_shifted)
         percents[step] = (torch.argmax(logits, dim=1) == target_indices).to(torch.float32).mean()
 
     return percents.mean()
