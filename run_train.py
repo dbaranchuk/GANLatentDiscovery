@@ -10,7 +10,7 @@ matplotlib.use("Agg")
 
 import numpy as np
 from models.gan_load import make_big_gan, make_proggan, make_external
-from trainer import Trainer, Params
+from trainer import Trainer, Params, validate_classifier
 from inception import InceptionV3
 from torchvision.models import inception_v3
 from efros_networks.resnet import resnet50 as efros_resnet50
