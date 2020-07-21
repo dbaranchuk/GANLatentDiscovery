@@ -159,7 +159,7 @@ class Trainer(object):
         shift_predictor_opt = torch.optim.Adam(predictor.parameters(), lr=self.p.predictor_lr)
 
         recovered_step = self.start_from_checkpoint(deformator, predictor)
-        for step in range(recovered_step, self.p.n_steps, 1):
+        for step in range(recovered_step + 1, self.p.n_steps, 1):
             deformator.zero_grad()
             predictor.zero_grad()
 

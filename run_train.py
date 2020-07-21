@@ -97,6 +97,7 @@ def main():
         G.load_state_dict(pretrained_model['g_ema'], strict=False)
         G.eval()
         G.dim_z = G.style_dim
+        G.dim_shift = G.style_dim #args.max_latent_ind
         for param in G.parameters():
             param.requires_grad = False
     else:
