@@ -252,7 +252,7 @@ def validate_classifier(G, deformator, shift_predictor, params_dict=None, traine
     for step in range(n_steps):
         z = make_noise(trainer.p.batch_size, G.dim_z, trainer.p.truncation).cuda()
         w = G.style(z)
-        target_indices, shifts, basis_shift = trainer.make_shifts(G.dim_shift)
+        target_indices, shifts, basis_shift = trainer.make_shifts(G.dim_z)
 
         imgs = G([w])
         imgs_shifted = G([w + deformator(basis_shift)])
