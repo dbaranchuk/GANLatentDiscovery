@@ -26,7 +26,7 @@ def interpolate(G, z, shifts_r, shifts_count, dim, deformator=None, with_central
             z_deformed = z + deformator(one_hot(z.shape[1:], shift, dim).cuda())
         else:
             z_deformed = z + one_hot(z.shape[1:], shift, dim).cuda()
-        shifted_image = G([z_deformed]).cpu()[0][0]
+        shifted_image = G([z_deformed])[0].cpu()[0]
         if shift == 0.0 and with_central_border:
             shifted_image = add_border(shifted_image)
 
