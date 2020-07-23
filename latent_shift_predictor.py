@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torchvision.models import resnet34, resnet50
+from torchvision.models import resnet18, resnet34, resnet50
 import numpy as np
 
 
@@ -12,7 +12,7 @@ def save_hook(module, input, output):
 class SiameseResNetPredictor(nn.Module):
     def __init__(self, dim, downsample=None):
         super(SiameseResNetPredictor, self).__init__()
-        self.features_extractor = resnet50(pretrained=False)
+        self.features_extractor = resnet34(pretrained=False)
         self.features = self.features_extractor.avgpool
         self.features.register_forward_hook(save_hook)
         self.downsample = downsample
