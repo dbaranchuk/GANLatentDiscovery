@@ -26,7 +26,7 @@ def interpolate(G, z, shifts_r, shifts_count, dim, deformator=None, with_central
             z_deformed = z + deformator(one_hot(z.shape[1:], shift, dim).cuda())
         else:
             z_deformed = z + one_hot(z.shape[1:], shift, dim).cuda()
-        shifted_image = G([z_deformed], input_is_latent=True)[0].cpu()[0]
+        shifted_image = G(z_deformed).cpu()[0]
         if shift == 0.0 and with_central_border:
             shifted_image = add_border(shifted_image)
 
@@ -54,14 +54,14 @@ def make_interpolation_chart(G, deformator=None, z=None,
         deformator_is_training = deformator.training
         deformator.eval()
     z = z if z is not None else make_noise(1, G.dim_z).cuda()
-    w = G.style(z)
-
-    original_img = G([w], input_is_latent=True)[0].cpu()
+    # w = G.style(z)
+    # original_img = G([w], input_is_latent=True)[0].cpu()
+    original_img = G(z).cpu()
     imgs = []
     if dims is None:
         dims = range(dims_count)
     for i in dims:
-        imgs.append(interpolate(G, w, shifts_r, shifts_count, i, deformator))
+        imgs.append(interpolate(G, z, shifts_r, shifts_count, i, deformator))
 
     rows_count = len(imgs) + 1
     fig, axs = plt.subplots(rows_count, **kwargs)

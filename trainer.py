@@ -165,8 +165,10 @@ class Trainer(object):
 
             with torch.no_grad():
                 z = make_noise(self.p.batch_size, G.dim_z).cuda()
-                w = G.style(z)
-                imgs = G([w], input_is_latent=True)[0]#.clamp(-1, 1)
+                # w = G.style(z)
+                imgs = G(z)#.clamp(-1, 1)
+                if isinstance(imgs, tuple):
+                    imgs = imgs[0]
                 # for _ in range(0):
                 #     imgs = G([z])[0].clamp(-1, 1)
                 #     normalized_imgs = normalize(F.interpolate(0.5 * (imgs + 1), predictor.downsample))
@@ -178,7 +180,10 @@ class Trainer(object):
             target_indices, shifts, basis_shift = self.make_shifts(G.dim_z)
             shift = deformator(basis_shift)
 
-            imgs_shifted = G([w + shift], input_is_latent=True)[0]#.clamp(-1, 1)
+            imgs_shifted = G(z + shift)
+            if isinstance(imgs_shifted, tuple):
+                imgs_shifted = imgs_shifted[0]
+            # imgs_shifted = G([w + shift], input_is_latent=True)[0]#.clamp(-1, 1)
             logits, shift_predictions = predictor(imgs, imgs_shifted)
             logit_loss = self.p.label_weight * self.cross_entropy(logits, target_indices)
             shift_loss = self.p.shift_weight * torch.mean(torch.abs(shift_predictions - shifts))
@@ -225,8 +230,8 @@ class Trainer(object):
                 for dir_id in range(0, self.p.max_latent_ind, num_directions_in_row):
                     for i in range(num_directions_in_row):
                         with torch.no_grad():
-                            img = G([z[dir_id + i][None]])[0]
-                            img_shifted = G([z_shifted[dir_id + i][None]])[0]
+                            img = G(z[dir_id + i][None])
+                            img_shifted = G(z_shifted[dir_id + i][None])
 
                         img = to_image(img.cpu().clamp(-1, 1))
                         axes[dir_id // 4, 2*i].imshow(img)
@@ -251,11 +256,14 @@ def validate_classifier(G, deformator, predictor, params_dict=None, trainer=None
     percents = torch.empty([n_steps])
     for step in range(n_steps):
         z = make_noise(trainer.p.batch_size, G.dim_z, trainer.p.truncation).cuda()
-        w = G.style(z)
+        # w = G.style(z)
         target_indices, shifts, basis_shift = trainer.make_shifts(G.dim_z)
 
-        imgs = G([w], input_is_latent=True)[0]
-        imgs_shifted = G([w + deformator(basis_shift)], input_is_latent=True)[0]
+        # imgs = G([w], input_is_latent=True)[0]
+        # imgs_shifted = G([w + deformator(basis_shift)], input_is_latent=True)[0]
+
+        imgs = G(z)
+        imgs_shifted = G(z + deformator(basis_shift))
 
         logits, _ = predictor(imgs, imgs_shifted)
         percents[step] = (torch.argmax(logits, dim=1) == target_indices).to(torch.float32).mean()
